@@ -1,0 +1,22 @@
+{
+  "enabled": true,
+  "name": "Python代码统一自动修复",
+  "description": "统一的Python代码自动修复系统，整合了token优化、智能修复和高效修复三种模式，用户可根据需要选择最适合的修复策略",
+  "version": "1.0",
+  "config": {
+    "fixMode": "smart",
+    "autoApplySimpleFixes": true,
+    "maxTokens": 500,
+    "interactiveMode": true
+  },
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "*.py"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "🔧 **Python代码统一自动修复系统**\n\n请根据以下配置对Python文件进行修复：\n\n**修复模式**: {{config.fixMode}}\n- `fast`: 高效模式 - 快速修复，使用预定义模板\n- `smart`: 智能模式 - 全面分析，交互式修复建议\n- `token-optimized`: 节约模式 - 最小token消耗，预编译规则\n\n**配置参数**:\n- 自动应用简单修复: {{config.autoApplySimpleFixes}}\n- Token限制: {{config.maxTokens}}\n- 交互模式: {{config.interactiveMode}}\n\n## 修复策略\n\n### 1. 快速模式 (fast)\n**目标**: 速度优先，模板化修复\n- 使用预定义模板快速修复常见问题\n- 限制分析深度，专注核心问题\n- 批量应用标准修复规则\n\n**修复项目**:\n- 格式化问题（缩进、空格、换行）\n- 基础类型注解添加\n- 导入语句排序\n- 简单命名规范修复\n\n### 2. 智能模式 (smart)\n**目标**: 质量优先，全面分析\n- 深度代码质量分析\n- 提供多种修复方案选择\n- 交互式复杂问题处理\n- 安全保障和代码对比\n\n**修复项目**:\n- 完整的代码质量检查\n- 智能类型注解推断\n- Docstring自动生成\n- 异常处理优化\n- 架构改进建议\n- 性能优化建议\n\n### 3. 节约模式 (token-optimized)\n**目标**: 成本优先，最小token消耗\n- 使用预编译规则匹配\n- 模式识别而非AI分析\n- 增量处理，只分析变更行\n- 批量修复，一次性处理\n\n**修复项目**:\n- 预定义问题模式匹配\n- 标准模板应用\n- 增量代码分析\n- 批量修复执行\n\n## 通用修复规则\n\n### MiniCRM项目标准\n- **类型注解模板**:\n  ```python\n  def create_{entity}(self, data: Dict[str, Any]) -> int:\n  def update_{entity}(self, id: int, data: Dict[str, Any]) -> bool:\n  def delete_{entity}(self, id: int) -> bool:\n  def get_{entity}(self, id: int) -> Optional[Dict[str, Any]]:\n  def search_{entities}(self, criteria: Dict[str, Any]) -> List[Dict[str, Any]]:\n  ```\n\n- **异常处理层次**:\n  ```python\n  ValidationError → BusinessLogicError → DatabaseError → MiniCRMError\n  ```\n\n- **导入顺序**:\n  ```python\n  # 标准库\n  import os\n  from typing import Dict, List, Optional\n  \n  # 第三方库\n  import tkinter as tk\n  from tkinter import ttk\n  \n  # 本地导入\n  from minicrm.core import BaseService\n  from minicrm.models import Customer\n  ```\n\n## 输出格式\n\n### 快速模式输出\n```\n⚡ 快速修复完成：\n✅ 格式化：X处\n✅ 类型注解：X个函数\n✅ 导入排序：已优化\n✅ 命名规范：X处修复\n⏱️ 耗时：X秒\n```\n\n### 智能模式输出\n```\n🧠 智能修复分析报告：\n\n📊 检测到的问题：\n- 代码质量问题：X处\n- 类型注解缺失：X个函数\n- Docstring缺失：X个函数\n- 异常处理：X处需要优化\n\n🚀 自动修复项：\n[具体修复代码]\n\n🤔 需要确认的复杂修复：\n1. 函数重构建议\n2. 架构优化建议\n3. 性能改进建议\n\n⚠️ 安全提醒：建议先备份文件\n```\n\n### 节约模式输出\n```\n💰 节约模式修复：\n🔧 修复：类型注解(X) 导入(X) 格式(X)\n📊 Token使用：X/{{config.maxTokens}}\n✅ 完成，节约X% token\n```\n\n## 执行要求\n1. 严格遵循MiniCRM开发标准\n2. 根据选择的模式调整分析深度\n3. 优先修复影响功能的关键问题\n4. 保持代码的可读性和维护性\n5. 提供清晰的修复说明和建议\n\n请开始分析并修复代码。"
+  }
+}

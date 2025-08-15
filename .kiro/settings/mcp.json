@@ -1,0 +1,99 @@
+{
+  "mcpServers": {
+    "fetch": {
+      "command": "uvx",
+      "args": [
+        "mcp-server-fetch"
+      ],
+      "env": {},
+      "disabled": true,
+      "autoApprove": []
+    },
+    "aws-docs": {
+      "command": "uvx",
+      "args": [
+        "awslabs.aws-documentation-mcp-server@latest"
+      ],
+      "env": {
+        "FASTMCP_LOG_LEVEL": "ERROR"
+      },
+      "disabled": false,
+      "autoApprove": []
+    },
+    "Sequential-Thinking": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking"
+      ],
+      "env": {},
+      "disabled": false,
+      "autoApprove": [
+        "sequentialthinking"
+      ]
+    },
+    "context7": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@upstash/context7-mcp@latest"
+      ],
+      "env": {
+        "DEFAULT_MINIMUM_TOKENS": "10000"
+      },
+      "disabled": false,
+      "autoApprove": [
+        "resolve-library-id"
+      ]
+    },
+    "apple-doc-mcp": {
+      "command": "node",
+      "args": [
+        "/Users/zliz/apple-doc-mcp/dist/index.js"
+      ],
+      "env": {},
+      "disabled": false,
+      "autoApprove": [
+        "list_technologies",
+        "search_symbols",
+        "get_documentation",
+        "check_updates"
+      ]
+    },
+    "git-mcp": {
+      "command": "uvx",
+      "args": [
+        "mcp-server-git"
+      ],
+      "env": {},
+      "disabled": false,
+      "autoApprove": [
+        "git_log",
+        "git_diff",
+        "git_show",
+        "search_files",
+        "read_file",
+        "git_status",
+        "git_create_branch"
+      ]
+    },
+    "transfunctions-reference": {
+      "command": "uvx",
+      "args": [
+        "mcp-server-git"
+      ],
+      "env": {
+        "GIT_REPO_PATH": "/tmp/transfunctions"
+      },
+      "disabled": false,
+      "autoApprove": [
+        "git_log",
+        "git_diff",
+        "git_show",
+        "search_files",
+        "read_file",
+        "git_status"
+      ]
+    }
+  }
+}

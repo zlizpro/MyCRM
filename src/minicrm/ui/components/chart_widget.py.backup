@@ -1,0 +1,641 @@
+"""
+MiniCRM 图表组件
+
+实现数据可视化图表，提供：
+- 多种图表类型（折线图、柱状图、饼图等）
+- matplotlib集成
+- 交互功能
+- 主题支持
+- 数据导出
+"""
+
+import logging
+from typing import Any
+
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.figure import Figure
+from PySide6.QtCore import Signal
+from PySide6.QtGui import QAction, QFont
+from PySide6.QtWidgets import (
+    QFrame,
+    QHBoxLayout,
+    QLabel,
+    QMenu,
+    QMessageBox,
+    QPushButton,
+    QVBoxLayout,
+    QWidget,
+)
+
+
+class ChartWidget(QWidget):
+    """
+    图表组件
+
+    基于matplotlib的图表显示组件，支持：
+    - 多种图表类型
+    - 数据更新和刷新
+    - 交互功能（缩放、平移）
+    - 主题切换
+    - 数据导出
+
+    Signals:
+        data_point_clicked: 数据点点击信号 (index: int, value: float)
+        chart_exported: 图表导出完成信号 (file_path: str)
+    """
+
+    # Qt信号定义
+    data_point_clicked = Signal(int, float)
+    chart_exported = Signal(str)
+
+    def __init__(
+        self,
+        title: str = "",
+        chart_type: str = "line",
+        width: int = 400,
+        height: int = 300,
+        parent: QWidget | None = None,
+    ):
+        """
+        初始化图表组件
+
+        Args:
+            title: 图表标题
+            chart_type: 图表类型 (line, bar, pie, stacked_bar, area)
+            width: 图表宽度
+            height: 图表高度
+            parent: 父组件
+        """
+        super().__init__(parent)
+
+        self._logger = logging.getLogger(__name__)
+
+        # 图表属性
+        self._title = title
+        self._chart_type = chart_type
+        self._width = width
+        self._height = height
+
+        # 数据
+        self._labels: list[str] = []
+        self._data: list[float] | list[list[float]] = []
+        self._colors: list[str] = []
+
+        # matplotlib组件
+        self._figure: Figure | None = None
+        self._canvas: FigureCanvas | None = None
+        self._axes: Any = None  # matplotlib.axes.Axes
+
+        # UI组件
+        self._title_label: QLabel | None = None
+        self._toolbar_frame: QFrame | None = None
+
+        # 设置组件
+        self._setup_ui()
+        self._setup_matplotlib()
+        self._setup_default_colors()
+
+        self._logger.debug(f"图表组件初始化完成: {title} ({chart_type})")
+
+    def _setup_ui(self) -> None:
+        """设置用户界面"""
+        try:
+            # 设置组件大小
+            self.setFixedSize(self._width, self._height)
+
+            # 主布局
+            main_layout = QVBoxLayout(self)
+            main_layout.setContentsMargins(10, 10, 10, 10)
+            main_layout.setSpacing(5)
+
+            # 创建标题和工具栏
+            self._create_header(main_layout)
+
+            # 图表容器将在_setup_matplotlib中创建
+
+        except Exception as e:
+            self._logger.error(f"图表UI设置失败: {e}")
+            raise
+
+    def _create_header(self, layout: QVBoxLayout) -> None:
+        """创建标题和工具栏"""
+        header_frame = QFrame()
+        header_layout = QHBoxLayout(header_frame)
+        header_layout.setContentsMargins(0, 0, 0, 0)
+        header_layout.setSpacing(10)
+
+        # 标题标签
+        self._title_label = QLabel(self._title)
+        self._title_label.setObjectName("chartTitle")
+
+        title_font = QFont()
+        title_font.setPointSize(12)
+        title_font.setBold(True)
+        self._title_label.setFont(title_font)
+
+        header_layout.addWidget(self._title_label)
+        header_layout.addStretch()
+
+        # 工具按钮
+        self._create_toolbar_buttons(header_layout)
+
+        layout.addWidget(header_frame)
+
+    def _create_toolbar_buttons(self, layout: QHBoxLayout) -> None:
+        """创建工具栏按钮"""
+        # 刷新按钮
+        refresh_btn = QPushButton("🔄")
+        refresh_btn.setToolTip("刷新图表")
+        refresh_btn.setFixedSize(24, 24)
+        refresh_btn.clicked.connect(self.refresh)
+        layout.addWidget(refresh_btn)
+
+        # 导出按钮
+        export_btn = QPushButton("📤")
+        export_btn.setToolTip("导出图表")
+        export_btn.setFixedSize(24, 24)
+        export_btn.clicked.connect(self._show_export_menu)
+        layout.addWidget(export_btn)
+
+        # 设置按钮
+        settings_btn = QPushButton("⚙️")
+        settings_btn.setToolTip("图表设置")
+        settings_btn.setFixedSize(24, 24)
+        settings_btn.clicked.connect(self._show_settings)
+        layout.addWidget(settings_btn)
+
+    def _setup_matplotlib(self) -> None:
+        """设置matplotlib图表"""
+        try:
+            # 创建图形和画布
+            self._figure = Figure(
+                figsize=(self._width / 100, (self._height - 50) / 100), dpi=100
+            )
+            self._canvas = FigureCanvas(self._figure)
+
+            # 设置图形背景
+            self._figure.patch.set_facecolor("white")
+
+            # 创建坐标轴
+            self._axes = self._figure.add_subplot(111)
+
+            # 设置中文字体支持
+            plt.rcParams["font.sans-serif"] = [
+                "Microsoft YaHei",
+                "SimHei",
+                "DejaVu Sans",
+            ]
+            plt.rcParams["axes.unicode_minus"] = False
+
+            # 添加画布到布局
+            layout = self.layout()
+            layout.addWidget(self._canvas)
+
+            # 连接事件
+            self._canvas.mpl_connect("button_press_event", self._on_canvas_click)
+
+        except Exception as e:
+            self._logger.error(f"matplotlib设置失败: {e}")
+            raise
+
+    def _setup_default_colors(self) -> None:
+        """设置默认颜色方案"""
+        self._colors = [
+            "#007bff",  # 蓝色
+            "#28a745",  # 绿色
+            "#ffc107",  # 黄色
+            "#dc3545",  # 红色
+            "#6f42c1",  # 紫色
+            "#17a2b8",  # 青色
+            "#fd7e14",  # 橙色
+            "#20c997",  # 青绿色
+            "#6c757d",  # 灰色
+            "#e83e8c",  # 粉色
+        ]
+
+    def update_data(
+        self,
+        labels: list[str],
+        data: list[float] | list[list[float]],
+        colors: list[str] | None = None,
+    ) -> None:
+        """
+        更新图表数据
+
+        Args:
+            labels: 数据标签
+            data: 数据值（单系列或多系列）
+            colors: 自定义颜色（可选）
+        """
+        try:
+            self._labels = labels
+            self._data = data
+
+            if colors:
+                self._colors = colors
+
+            # 重新绘制图表
+            self._draw_chart()
+
+            self._logger.debug(f"图表数据更新完成: {len(labels)}个数据点")
+
+        except Exception as e:
+            self._logger.error(f"图表数据更新失败: {e}")
+
+    def _draw_chart(self) -> None:
+        """绘制图表"""
+        try:
+            # 清除现有内容
+            self._axes.clear()
+
+            if not self._labels or not self._data:
+                self._axes.text(
+                    0.5,
+                    0.5,
+                    "暂无数据",
+                    horizontalalignment="center",
+                    verticalalignment="center",
+                    transform=self._axes.transAxes,
+                    fontsize=14,
+                    color="gray",
+                )
+                self._canvas.draw()
+                return
+
+            # 根据图表类型绘制
+            if self._chart_type == "line":
+                self._draw_line_chart()
+            elif self._chart_type == "bar":
+                self._draw_bar_chart()
+            elif self._chart_type == "pie":
+                self._draw_pie_chart()
+            elif self._chart_type == "stacked_bar":
+                self._draw_stacked_bar_chart()
+            elif self._chart_type == "area":
+                self._draw_area_chart()
+            else:
+                self._logger.warning(f"不支持的图表类型: {self._chart_type}")
+                return
+
+            # 设置标题
+            if self._title:
+                self._axes.set_title(
+                    self._title, fontsize=12, fontweight="bold", pad=20
+                )
+
+            # 调整布局
+            self._figure.tight_layout()
+
+            # 刷新画布
+            self._canvas.draw()
+
+        except Exception as e:
+            self._logger.error(f"图表绘制失败: {e}")
+
+    def _draw_line_chart(self) -> None:
+        """绘制折线图"""
+        if isinstance(self._data[0], list):
+            # 多系列数据
+            for i, series in enumerate(self._data):
+                color = self._colors[i % len(self._colors)]
+                self._axes.plot(
+                    self._labels,
+                    series,
+                    marker="o",
+                    linewidth=2,
+                    markersize=4,
+                    color=color,
+                    label=f"系列{i + 1}",
+                )
+            self._axes.legend()
+        else:
+            # 单系列数据
+            self._axes.plot(
+                self._labels,
+                self._data,
+                marker="o",
+                linewidth=2,
+                markersize=4,
+                color=self._colors[0],
+            )
+
+        self._axes.grid(True, alpha=0.3)
+        self._axes.set_xlabel("时间")
+        self._axes.set_ylabel("数值")
+
+        # 旋转x轴标签
+        plt.setp(self._axes.get_xticklabels(), rotation=45, ha="right")
+
+    def _draw_bar_chart(self) -> None:
+        """绘制柱状图"""
+        x_pos = np.arange(len(self._labels))
+
+        if isinstance(self._data[0], list):
+            # 多系列数据
+            bar_width = 0.8 / len(self._data)
+            for i, series in enumerate(self._data):
+                color = self._colors[i % len(self._colors)]
+                offset = (i - len(self._data) / 2 + 0.5) * bar_width
+                self._axes.bar(
+                    x_pos + offset, series, bar_width, color=color, label=f"系列{i + 1}"
+                )
+            self._axes.legend()
+        else:
+            # 单系列数据
+            bars = self._axes.bar(
+                x_pos, self._data, color=self._colors[: len(self._data)]
+            )
+
+            # 在柱子上显示数值
+            for bar, value in zip(bars, self._data, strict=False):
+                height = bar.get_height()
+                self._axes.text(
+                    bar.get_x() + bar.get_width() / 2.0,
+                    height,
+                    f"{value:,.0f}",
+                    ha="center",
+                    va="bottom",
+                    fontsize=9,
+                )
+
+        self._axes.set_xlabel("类别")
+        self._axes.set_ylabel("数值")
+        self._axes.set_xticks(x_pos)
+        self._axes.set_xticklabels(self._labels)
+
+        # 旋转x轴标签
+        plt.setp(self._axes.get_xticklabels(), rotation=45, ha="right")
+
+    def _draw_pie_chart(self) -> None:
+        """绘制饼图"""
+        # 确保数据是单系列的
+        if not self._data:
+            return
+
+        # 处理数据类型
+        if isinstance(self._data[0], int | float):
+            data = [float(x) for x in self._data if isinstance(x, int | float)]
+        else:
+            # 如果是多系列数据，取第一个系列
+            first_series = self._data[0] if isinstance(self._data[0], list) else []
+            data = [float(x) for x in first_series if isinstance(x, int | float)]
+
+        # 计算百分比
+        total = sum(data)
+        percentages = [value / total * 100 for value in data]
+
+        # 创建标签（包含百分比）
+        pie_labels = [
+            f"{label}\n{value:,.0f}\n({pct:.1f}%)"
+            for label, value, pct in zip(self._labels, data, percentages, strict=False)
+        ]
+
+        # 绘制饼图
+        wedges, texts, autotexts = self._axes.pie(
+            data,
+            labels=pie_labels,
+            colors=self._colors[: len(self._data)],
+            autopct="",  # 不显示自动百分比，因为已经在标签中
+            startangle=90,
+            textprops={"fontsize": 9},
+        )
+
+        # 设置相等的纵横比，确保饼图是圆形
+        self._axes.axis("equal")
+
+    def _draw_stacked_bar_chart(self) -> None:
+        """绘制堆叠柱状图"""
+        if not isinstance(self._data[0], list):
+            self._logger.warning("堆叠柱状图需要多系列数据")
+            return
+
+        x_pos = np.arange(len(self._labels))
+        bottom = np.zeros(len(self._labels))
+
+        for i, series in enumerate(self._data):
+            color = self._colors[i % len(self._colors)]
+            self._axes.bar(
+                x_pos, series, bottom=bottom, color=color, label=f"系列{i + 1}"
+            )
+            bottom += np.array(series)
+
+        self._axes.set_xlabel("类别")
+        self._axes.set_ylabel("数值")
+        self._axes.set_xticks(x_pos)
+        self._axes.set_xticklabels(self._labels)
+        self._axes.legend()
+
+        # 旋转x轴标签
+        plt.setp(self._axes.get_xticklabels(), rotation=45, ha="right")
+
+    def _draw_area_chart(self) -> None:
+        """绘制面积图"""
+        x_pos = np.arange(len(self._labels))
+
+        if isinstance(self._data[0], list):
+            # 多系列数据
+            self._axes.stackplot(
+                x_pos,
+                *self._data,
+                labels=[f"系列{i + 1}" for i in range(len(self._data))],
+                colors=self._colors[: len(self._data)],
+                alpha=0.7,
+            )
+            self._axes.legend()
+        else:
+            # 单系列数据
+            self._axes.fill_between(x_pos, self._data, color=self._colors[0], alpha=0.7)
+            self._axes.plot(x_pos, self._data, color=self._colors[0], linewidth=2)
+
+        self._axes.set_xlabel("时间")
+        self._axes.set_ylabel("数值")
+        self._axes.set_xticks(x_pos)
+        self._axes.set_xticklabels(self._labels)
+        self._axes.grid(True, alpha=0.3)
+
+        # 旋转x轴标签
+        plt.setp(self._axes.get_xticklabels(), rotation=45, ha="right")
+
+    def _on_canvas_click(self, event) -> None:
+        """处理画布点击事件"""
+        try:
+            if event.inaxes != self._axes:
+                return
+
+            # 获取点击位置的数据
+            if self._chart_type in ["line", "bar", "area"]:
+                # 找到最近的数据点
+                if self._labels and self._data:
+                    x_data = np.arange(len(self._labels))
+                    if isinstance(self._data[0], list):
+                        y_data = self._data[0]  # 使用第一个系列
+                    else:
+                        # 确保是单系列数据
+                        if isinstance(self._data[0], int | float):
+                            y_data = [
+                                float(x)
+                                for x in self._data
+                                if isinstance(x, int | float)
+                            ]
+                        else:
+                            y_data = []
+
+                    # 计算距离
+                    distances = np.sqrt(
+                        (x_data - event.xdata) ** 2
+                        + (np.array(y_data) - event.ydata) ** 2
+                    )
+                    closest_index = np.argmin(distances)
+
+                    # 发送信号
+                    self.data_point_clicked.emit(closest_index, y_data[closest_index])
+
+                    self._logger.debug(
+                        f"数据点点击: 索引{closest_index}, 值{y_data[closest_index]}"
+                    )
+
+        except Exception as e:
+            self._logger.error(f"画布点击处理失败: {e}")
+
+    def _show_export_menu(self) -> None:
+        """显示导出菜单"""
+        try:
+            menu = QMenu(self)
+
+            # PNG导出
+            png_action = QAction("导出为PNG", self)
+            png_action.triggered.connect(lambda: self._export_chart("png"))
+            menu.addAction(png_action)
+
+            # PDF导出
+            pdf_action = QAction("导出为PDF", self)
+            pdf_action.triggered.connect(lambda: self._export_chart("pdf"))
+            menu.addAction(pdf_action)
+
+            # SVG导出
+            svg_action = QAction("导出为SVG", self)
+            svg_action.triggered.connect(lambda: self._export_chart("svg"))
+            menu.addAction(svg_action)
+
+            # 显示菜单
+            sender = self.sender()
+            if hasattr(sender, "pos"):
+                menu.exec_(self.mapToGlobal(sender.pos()))
+            else:
+                menu.exec_()
+
+        except Exception as e:
+            self._logger.error(f"导出菜单显示失败: {e}")
+
+    def _export_chart(self, format_type: str) -> None:
+        """
+        导出图表
+
+        Args:
+            format_type: 导出格式 (png, pdf, svg)
+        """
+        try:
+            from PySide6.QtWidgets import QFileDialog
+
+            # 选择保存路径
+            file_filter = {
+                "png": "PNG图片 (*.png)",
+                "pdf": "PDF文档 (*.pdf)",
+                "svg": "SVG矢量图 (*.svg)",
+            }
+
+            file_path, _ = QFileDialog.getSaveFileName(
+                self,
+                f"导出图表为{format_type.upper()}",
+                f"{self._title}.{format_type}",
+                file_filter[format_type],
+            )
+
+            if file_path:
+                # 保存图表
+                self._figure.savefig(
+                    file_path, format=format_type, dpi=300, bbox_inches="tight"
+                )
+
+                # 发送导出完成信号
+                self.chart_exported.emit(file_path)
+
+                self._logger.info(f"图表导出成功: {file_path}")
+
+                # 显示成功消息
+                QMessageBox.information(self, "导出成功", f"图表已保存到:\n{file_path}")
+
+        except Exception as e:
+            self._logger.error(f"图表导出失败: {e}")
+            QMessageBox.critical(self, "导出失败", f"图表导出失败:\n{str(e)}")
+
+    def _show_settings(self) -> None:
+        """显示图表设置"""
+        # TODO: 实现图表设置对话框
+        QMessageBox.information(self, "功能开发中", "图表设置功能正在开发中...")
+
+    def refresh(self) -> None:
+        """刷新图表"""
+        try:
+            self._draw_chart()
+            self._logger.debug("图表刷新完成")
+
+        except Exception as e:
+            self._logger.error(f"图表刷新失败: {e}")
+
+    def set_title(self, title: str) -> None:
+        """
+        设置图表标题
+
+        Args:
+            title: 新标题
+        """
+        self._title = title
+        if self._title_label:
+            self._title_label.setText(title)
+        self._draw_chart()
+
+    def set_chart_type(self, chart_type: str) -> None:
+        """
+        设置图表类型
+
+        Args:
+            chart_type: 图表类型
+        """
+        if chart_type in ["line", "bar", "pie", "stacked_bar", "area"]:
+            self._chart_type = chart_type
+            self._draw_chart()
+        else:
+            self._logger.warning(f"不支持的图表类型: {chart_type}")
+
+    def set_colors(self, colors: list[str]) -> None:
+        """
+        设置图表颜色
+
+        Args:
+            colors: 颜色列表
+        """
+        self._colors = colors
+        self._draw_chart()
+
+    def clear(self) -> None:
+        """清空图表"""
+        self._labels = []
+        self._data = []
+        self._draw_chart()
+
+    def get_data(self) -> dict[str, Any]:
+        """获取当前图表数据"""
+        return {
+            "title": self._title,
+            "chart_type": self._chart_type,
+            "labels": self._labels.copy(),
+            "data": self._data.copy() if isinstance(self._data, list) else self._data,
+            "colors": self._colors.copy(),
+        }
+
+    def __str__(self) -> str:
+        """返回图表的字符串表示"""
+        return f"ChartWidget(title='{self._title}', type='{self._chart_type}', data_points={len(self._labels)})"

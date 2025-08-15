@@ -1,0 +1,343 @@
+"""
+MiniCRM 表单数据绑定器
+
+负责表单数据的双向绑定，包括数据设置、获取和变化监听。
+支持多种字段类型的数据转换和格式化。
+"""
+
+import logging
+from datetime import date, datetime
+from typing import Any
+
+from PySide6.QtCore import QDate, QDateTime, Qt, QTime
+from PySide6.QtWidgets import (
+    QButtonGroup,
+    QCheckBox,
+    QComboBox,
+    QDateEdit,
+    QDateTimeEdit,
+    QDoubleSpinBox,
+    QLineEdit,
+    QSpinBox,
+    QTextEdit,
+    QWidget,
+)
+
+from minicrm.ui.components.form_field_factory import FieldType
+
+
+class FormDataBinder:
+    """
+    表单数据绑定器类
+
+    提供表单数据的双向绑定功能：
+    - 将数据设置到表单字段
+    - 从表单字段获取数据
+    - 数据类型转换和格式化
+    - 变化监听和通知
+    """
+
+    def __init__(self):
+        """初始化数据绑定器"""
+        self._logger = logging.getLogger(f"{__name__}.FormDataBinder")
+        self._field_widgets: dict[str, QWidget] = {}
+        self._field_configs: dict[str, dict[str, Any]] = {}
+        self._original_data: dict[str, Any] = {}
+
+    def register_field(
+        self, field_key: str, widget: QWidget, config: dict[str, Any]
+    ) -> None:
+        """
+        注册字段组件
+
+        Args:
+            field_key: 字段键名
+            widget: 字段组件
+            config: 字段配置
+        """
+        self._field_widgets[field_key] = widget
+        self._field_configs[field_key] = config
+        self._logger.debug(f"注册字段: {field_key}")
+
+    def set_data(self, data: dict[str, Any]) -> None:
+        """
+        设置表单数据
+
+        Args:
+            data: 表单数据字典
+        """
+        try:
+            self._original_data = data.copy()
+
+            for field_key, value in data.items():
+                self._set_field_value(field_key, value)
+
+            self._logger.debug(f"设置表单数据完成: {len(data)} 个字段")
+
+        except Exception as e:
+            self._logger.error(f"设置表单数据失败: {e}")
+
+    def get_data(self) -> dict[str, Any]:
+        """
+        获取表单数据
+
+        Returns:
+            Dict[str, Any]: 表单数据字典
+        """
+        try:
+            data = {}
+
+            for field_key, widget in self._field_widgets.items():
+                value = self._get_field_value(field_key, widget)
+                if value is not None:
+                    data[field_key] = value
+
+            self._logger.debug(f"获取表单数据完成: {len(data)} 个字段")
+            return data
+
+        except Exception as e:
+            self._logger.error(f"获取表单数据失败: {e}")
+            return {}
+
+    def _set_field_value(self, field_key: str, value: Any) -> None:
+        """
+        设置字段值
+
+        Args:
+            field_key: 字段键名
+            value: 字段值
+        """
+        try:
+            if field_key not in self._field_widgets:
+                return
+
+            widget = self._field_widgets[field_key]
+            config = self._field_configs.get(field_key, {})
+            field_type = config.get("type", "text")
+
+            if isinstance(widget, QLineEdit):
+                widget.setText(str(value) if value is not None else "")
+
+            elif isinstance(widget, QTextEdit):
+                widget.setPlainText(str(value) if value is not None else "")
+
+            elif isinstance(widget, QSpinBox):
+                widget.setValue(int(value) if value is not None else 0)
+
+            elif isinstance(widget, QDoubleSpinBox):
+                widget.setValue(float(value) if value is not None else 0.0)
+
+            elif isinstance(widget, QComboBox):
+                if value is not None:
+                    index = widget.findData(value)
+                    if index >= 0:
+                        widget.setCurrentIndex(index)
+                    else:
+                        # 尝试按文本查找
+                        index = widget.findText(str(value))
+                        if index >= 0:
+                            widget.setCurrentIndex(index)
+
+            elif isinstance(widget, QCheckBox):
+                widget.setChecked(bool(value) if value is not None else False)
+
+            elif isinstance(widget, QDateEdit):
+                if value is not None:
+                    if isinstance(value, date):
+                        q_date = QDate(value.year, value.month, value.day)
+                        widget.setDate(q_date)
+                    elif isinstance(value, str):
+                        q_date = QDate.fromString(value, Qt.DateFormat.ISODate)
+                        if q_date.isValid():
+                            widget.setDate(q_date)
+
+            elif isinstance(widget, QDateTimeEdit):
+                if value is not None:
+                    if isinstance(value, datetime):
+                        q_datetime = QDateTime(
+                            QDate(value.year, value.month, value.day),
+                            QTime(value.hour, value.minute, value.second),
+                        )
+                        widget.setDateTime(q_datetime)
+                    elif isinstance(value, str):
+                        q_datetime = QDateTime.fromString(value, Qt.DateFormat.ISODate)
+                        if q_datetime.isValid():
+                            widget.setDateTime(q_datetime)
+
+            elif field_type == FieldType.RADIO.value:
+                # 处理单选框组
+                button_group = widget.property("button_group")
+                if button_group and isinstance(button_group, QButtonGroup):
+                    for button in button_group.buttons():
+                        if button.property("value") == value:
+                            button.setChecked(True)
+                            break
+
+        except Exception as e:
+            self._logger.error(f"设置字段值失败 {field_key}: {e}")
+
+    def _get_field_value(self, field_key: str, widget: QWidget) -> Any:
+        """
+        获取字段值
+
+        Args:
+            field_key: 字段键名
+            widget: 字段组件
+
+        Returns:
+            Any: 字段值
+        """
+        try:
+            config = self._field_configs.get(field_key, {})
+            field_type = config.get("type", "text")
+
+            if isinstance(widget, QLineEdit):
+                text = widget.text().strip()
+                return text if text else None
+
+            elif isinstance(widget, QTextEdit):
+                text = widget.toPlainText().strip()
+                return text if text else None
+
+            elif isinstance(widget, QSpinBox | QDoubleSpinBox):
+                return widget.value()
+
+            elif isinstance(widget, QComboBox):
+                current_data = widget.currentData()
+                return (
+                    current_data if current_data is not None else widget.currentText()
+                )
+
+            elif isinstance(widget, QCheckBox):
+                return widget.isChecked()
+
+            elif isinstance(widget, QDateEdit):
+                q_date = widget.date()
+                return q_date.toPython()
+
+            elif isinstance(widget, QDateTimeEdit):
+                q_datetime = widget.dateTime()
+                return q_datetime.toPython()
+
+            elif field_type == FieldType.RADIO.value:
+                # 处理单选框组
+                button_group = widget.property("button_group")
+                if button_group and isinstance(button_group, QButtonGroup):
+                    checked_button = button_group.checkedButton()
+                    if checked_button:
+                        return checked_button.property("value")
+
+            return None
+
+        except Exception as e:
+            self._logger.error(f"获取字段值失败 {field_key}: {e}")
+            return None
+
+    def is_modified(self) -> bool:
+        """
+        检查表单是否已修改
+
+        Returns:
+            bool: 是否已修改
+        """
+        try:
+            current_data = self.get_data()
+            return current_data != self._original_data
+
+        except Exception as e:
+            self._logger.error(f"检查表单修改状态失败: {e}")
+            return False
+
+    def reset_to_original(self) -> None:
+        """重置到原始数据"""
+        try:
+            self.set_data(self._original_data)
+            self._logger.debug("表单已重置到原始数据")
+
+        except Exception as e:
+            self._logger.error(f"重置表单失败: {e}")
+
+    def clear_data(self) -> None:
+        """清空表单数据"""
+        try:
+            empty_data: dict[str, Any] = {}
+            for field_key in self._field_widgets:
+                empty_data[field_key] = None
+
+            self.set_data(empty_data)
+            self._original_data.clear()
+            self._logger.debug("表单数据已清空")
+
+        except Exception as e:
+            self._logger.error(f"清空表单数据失败: {e}")
+
+    def get_field_value(self, field_key: str) -> Any:
+        """
+        获取指定字段的值
+
+        Args:
+            field_key: 字段键名
+
+        Returns:
+            Any: 字段值
+        """
+        if field_key in self._field_widgets:
+            return self._get_field_value(field_key, self._field_widgets[field_key])
+        return None
+
+    def set_field_value(self, field_key: str, value: Any) -> None:
+        """
+        设置指定字段的值
+
+        Args:
+            field_key: 字段键名
+            value: 字段值
+        """
+        if field_key in self._field_widgets:
+            self._set_field_value(field_key, value)
+
+    def set_field_enabled(self, field_key: str, enabled: bool) -> None:
+        """
+        设置字段启用状态
+
+        Args:
+            field_key: 字段键名
+            enabled: 是否启用
+        """
+        if field_key in self._field_widgets:
+            self._field_widgets[field_key].setEnabled(enabled)
+
+    def set_field_visible(self, field_key: str, visible: bool) -> None:
+        """
+        设置字段可见性
+
+        Args:
+            field_key: 字段键名
+            visible: 是否可见
+        """
+        if field_key in self._field_widgets:
+            self._field_widgets[field_key].setVisible(visible)
+
+    def get_modified_fields(self) -> list[str]:
+        """
+        获取已修改的字段列表
+
+        Returns:
+            List[str]: 已修改的字段键名列表
+        """
+        try:
+            current_data = self.get_data()
+            modified_fields = []
+
+            for field_key in self._field_widgets:
+                original_value = self._original_data.get(field_key)
+                current_value = current_data.get(field_key)
+
+                if original_value != current_value:
+                    modified_fields.append(field_key)
+
+            return modified_fields
+
+        except Exception as e:
+            self._logger.error(f"获取修改字段列表失败: {e}")
+            return []

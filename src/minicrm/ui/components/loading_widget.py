@@ -1,0 +1,468 @@
+"""
+MiniCRM 加载指示器组件
+
+实现各种加载指示器，提供：
+- 旋转加载动画
+- 进度条加载
+- 骨架屏加载
+- 自定义加载消息
+- 覆盖层加载
+"""
+
+import logging
+
+from PySide6.QtCore import QRect, Qt, QTimer, Signal
+from PySide6.QtGui import QColor, QFont, QPainter, QPen
+from PySide6.QtWidgets import (
+    QHBoxLayout,
+    QLabel,
+    QProgressBar,
+    QPushButton,
+    QVBoxLayout,
+    QWidget,
+)
+
+
+class SpinnerWidget(QWidget):
+    """
+    旋转加载指示器
+
+    显示一个旋转的圆形加载动画。
+    """
+
+    def __init__(
+        self, size: int = 32, color: str = "#007bff", parent: QWidget | None = None
+    ):
+        """
+        初始化旋转指示器
+
+        Args:
+            size: 指示器大小
+            color: 指示器颜色
+            parent: 父组件
+        """
+        super().__init__(parent)
+
+        self._size = size
+        self._color = QColor(color)
+        self._angle = 0
+
+        # 设置组件大小
+        self.setFixedSize(size, size)
+
+        # 创建定时器
+        self._timer = QTimer()
+        self._timer.timeout.connect(self._update_angle)
+
+        # 设置透明背景
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+
+    def start(self) -> None:
+        """开始动画"""
+        self._timer.start(50)  # 50ms间隔
+
+    def stop(self) -> None:
+        """停止动画"""
+        self._timer.stop()
+        self._angle = 0
+        self.update()
+
+    def _update_angle(self) -> None:
+        """更新角度"""
+        self._angle = (self._angle + 15) % 360
+        self.update()
+
+    def paintEvent(self, event) -> None:  # noqa: N802
+        """绘制事件"""
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+
+        # 设置画笔
+        pen = QPen(self._color)
+        pen.setWidth(3)
+        pen.setCapStyle(Qt.PenCapStyle.RoundCap)
+        painter.setPen(pen)
+
+        # 绘制圆弧
+        rect = self.rect().adjusted(5, 5, -5, -5)
+        painter.drawArc(rect, self._angle * 16, 120 * 16)
+
+
+class LoadingWidget(QWidget):
+    """
+    通用加载指示器组件
+
+    提供多种加载指示器样式和功能。
+
+    Signals:
+        cancelled: 取消信号（如果显示取消按钮）
+    """
+
+    # Qt信号定义
+    cancelled = Signal()
+
+    def __init__(
+        self,
+        message: str = "正在加载...",
+        show_spinner: bool = True,
+        show_progress: bool = False,
+        show_cancel: bool = False,
+        overlay: bool = False,
+        parent: QWidget | None = None,
+    ):
+        """
+        初始化加载组件
+
+        Args:
+            message: 加载消息
+            show_spinner: 是否显示旋转指示器
+            show_progress: 是否显示进度条
+            show_cancel: 是否显示取消按钮
+            overlay: 是否作为覆盖层
+            parent: 父组件
+        """
+        super().__init__(parent)
+
+        self._logger = logging.getLogger(__name__)
+
+        # 加载配置
+        self._message = message
+        self._show_spinner = show_spinner
+        self._show_progress = show_progress
+        self._show_cancel = show_cancel
+        self._overlay = overlay
+
+        # UI组件
+        self._spinner: SpinnerWidget | None = None
+        self._message_label: QLabel | None = None
+        self._progress_bar: QProgressBar | None = None
+        self._cancel_button: QPushButton | None = None
+
+        # 设置组件
+        self._setup_ui()
+
+        # 如果是覆盖层，设置样式
+        if self._overlay:
+            self._setup_overlay()
+
+        self._logger.debug("加载指示器初始化完成")
+
+    def _setup_ui(self) -> None:
+        """设置用户界面"""
+        try:
+            # 主布局
+            layout = QVBoxLayout(self)
+            layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            layout.setSpacing(15)
+
+            # 旋转指示器
+            if self._show_spinner:
+                self._spinner = SpinnerWidget(48, "#007bff")
+                spinner_layout = QHBoxLayout()
+                spinner_layout.addStretch()
+                spinner_layout.addWidget(self._spinner)
+                spinner_layout.addStretch()
+                layout.addLayout(spinner_layout)
+
+            # 消息标签
+            self._message_label = QLabel(self._message)
+            self._message_label.setObjectName("loadingMessage")
+            self._message_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            self._message_label.setWordWrap(True)
+
+            # 设置字体
+            font = QFont()
+            font.setPointSize(12)
+            self._message_label.setFont(font)
+
+            layout.addWidget(self._message_label)
+
+            # 进度条
+            if self._show_progress:
+                self._progress_bar = QProgressBar()
+                self._progress_bar.setObjectName("loadingProgress")
+                self._progress_bar.setMinimumWidth(200)
+                self._progress_bar.setTextVisible(True)
+                layout.addWidget(self._progress_bar)
+
+            # 取消按钮
+            if self._show_cancel:
+                from PySide6.QtWidgets import QPushButton
+
+                self._cancel_button = QPushButton("取消")
+                self._cancel_button.setObjectName("cancelButton")
+                self._cancel_button.clicked.connect(self.cancelled.emit)
+
+                button_layout = QHBoxLayout()
+                button_layout.addStretch()
+                button_layout.addWidget(self._cancel_button)
+                button_layout.addStretch()
+                layout.addLayout(button_layout)
+
+            # 应用样式
+            self._apply_styles()
+
+        except Exception as e:
+            self._logger.error(f"加载组件UI设置失败: {e}")
+            raise
+
+    def _setup_overlay(self) -> None:
+        """设置覆盖层样式"""
+        try:
+            # 设置为覆盖层
+            self.setWindowFlags(
+                Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint
+            )
+            self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+
+            # 设置半透明背景
+            self.setStyleSheet("""
+                LoadingWidget {
+                    background-color: rgba(0, 0, 0, 0.5);
+                    border-radius: 8px;
+                }
+            """)
+
+        except Exception as e:
+            self._logger.error(f"设置覆盖层样式失败: {e}")
+
+    def _apply_styles(self) -> None:
+        """应用样式"""
+        style = """
+            QLabel#loadingMessage {
+                color: #495057;
+                background-color: transparent;
+            }
+
+            QProgressBar#loadingProgress {
+                border: 1px solid #ced4da;
+                border-radius: 4px;
+                background-color: #e9ecef;
+                text-align: center;
+            }
+
+            QProgressBar#loadingProgress::chunk {
+                background-color: #007bff;
+                border-radius: 3px;
+            }
+
+            QPushButton#cancelButton {
+                background-color: #6c757d;
+                color: white;
+                border: none;
+                padding: 8px 16px;
+                border-radius: 4px;
+                font-weight: bold;
+            }
+
+            QPushButton#cancelButton:hover {
+                background-color: #545b62;
+            }
+        """
+
+        if not self._overlay:
+            style += """
+                LoadingWidget {
+                    background-color: white;
+                    border: 1px solid #dee2e6;
+                    border-radius: 8px;
+                    padding: 20px;
+                }
+            """
+
+        self.setStyleSheet(style)
+
+    def show_loading(self) -> None:
+        """显示加载状态"""
+        try:
+            if self._spinner:
+                self._spinner.start()
+
+            self.show()
+
+            # 如果是覆盖层，居中显示
+            if self._overlay and self.parent():
+                parent = self.parent()
+                parent_rect = parent.rect() if hasattr(parent, "rect") else self.rect()
+                self.resize(300, 150)
+                self.move(
+                    parent_rect.center().x() - self.width() // 2,
+                    parent_rect.center().y() - self.height() // 2,
+                )
+
+        except Exception as e:
+            self._logger.error(f"显示加载状态失败: {e}")
+
+    def hide_loading(self) -> None:
+        """隐藏加载状态"""
+        try:
+            if self._spinner:
+                self._spinner.stop()
+
+            self.hide()
+
+        except Exception as e:
+            self._logger.error(f"隐藏加载状态失败: {e}")
+
+    def set_message(self, message: str) -> None:
+        """
+        设置加载消息
+
+        Args:
+            message: 新的加载消息
+        """
+        self._message = message
+        if self._message_label:
+            self._message_label.setText(message)
+
+    def set_progress(self, value: int, maximum: int = 100) -> None:
+        """
+        设置进度
+
+        Args:
+            value: 当前进度值
+            maximum: 最大进度值
+        """
+        if self._progress_bar:
+            self._progress_bar.setMaximum(maximum)
+            self._progress_bar.setValue(value)
+
+    def set_indeterminate_progress(self) -> None:
+        """设置不确定进度"""
+        if self._progress_bar:
+            self._progress_bar.setRange(0, 0)
+
+    def __str__(self) -> str:
+        """返回加载组件的字符串表示"""
+        return f"LoadingWidget(message='{self._message}', overlay={self._overlay})"
+
+
+class SkeletonWidget(QWidget):
+    """
+    骨架屏加载组件
+
+    显示内容加载时的占位符动画。
+    """
+
+    def __init__(
+        self,
+        lines: int = 3,
+        line_height: int = 16,
+        line_spacing: int = 8,
+        animate: bool = True,
+        parent: QWidget | None = None,
+    ):
+        """
+        初始化骨架屏
+
+        Args:
+            lines: 行数
+            line_height: 行高
+            line_spacing: 行间距
+            animate: 是否显示动画
+            parent: 父组件
+        """
+        super().__init__(parent)
+
+        self._lines = lines
+        self._line_height = line_height
+        self._line_spacing = line_spacing
+        self._animate = animate
+
+        # 动画相关
+        self._animation_offset = 0
+        self._animation_timer = QTimer()
+        self._animation_timer.timeout.connect(self._update_animation)
+
+        # 设置组件大小
+        total_height = lines * line_height + (lines - 1) * line_spacing
+        self.setFixedHeight(total_height)
+
+        # 开始动画
+        if self._animate:
+            self._animation_timer.start(100)
+
+    def _update_animation(self) -> None:
+        """更新动画"""
+        self._animation_offset = (self._animation_offset + 10) % self.width()
+        self.update()
+
+    def paintEvent(self, event) -> None:  # noqa: N802
+        """绘制事件"""
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+
+        # 基础颜色
+        base_color = QColor("#e9ecef")
+        highlight_color = QColor("#f8f9fa")
+
+        for i in range(self._lines):
+            y = i * (self._line_height + self._line_spacing)
+
+            # 绘制基础矩形
+            rect = self.rect()
+            rect.setTop(y)
+            rect.setHeight(self._line_height)
+
+            # 最后一行稍短
+            if i == self._lines - 1:
+                rect.setWidth(int(rect.width() * 0.7))
+
+            painter.fillRect(rect, base_color)
+
+            # 绘制动画高光
+            if self._animate:
+                highlight_rect = QRect(rect)
+                highlight_rect.setLeft(self._animation_offset - 50)
+                highlight_rect.setWidth(100)
+
+                # 创建渐变效果
+                gradient_rect = highlight_rect.intersected(rect)
+                if not gradient_rect.isEmpty():
+                    painter.fillRect(gradient_rect, highlight_color)
+
+    def start_animation(self) -> None:
+        """开始动画"""
+        if not self._animation_timer.isActive():
+            self._animation_timer.start(100)
+
+    def stop_animation(self) -> None:
+        """停止动画"""
+        self._animation_timer.stop()
+        self.update()
+
+
+# 便捷函数
+def show_loading_overlay(
+    parent: QWidget, message: str = "正在加载..."
+) -> LoadingWidget:
+    """
+    显示加载覆盖层
+
+    Args:
+        parent: 父组件
+        message: 加载消息
+
+    Returns:
+        LoadingWidget: 加载组件实例
+    """
+    loading = LoadingWidget(
+        message=message, show_spinner=True, overlay=True, parent=parent
+    )
+    loading.show_loading()
+    return loading
+
+
+def create_skeleton_placeholder(parent: QWidget, lines: int = 3) -> SkeletonWidget:
+    """
+    创建骨架屏占位符
+
+    Args:
+        parent: 父组件
+        lines: 行数
+
+    Returns:
+        SkeletonWidget: 骨架屏组件实例
+    """
+    skeleton = SkeletonWidget(lines=lines, parent=parent)
+    return skeleton

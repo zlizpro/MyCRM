@@ -1,0 +1,885 @@
+"""
+MiniCRM 表单面板组件
+
+实现通用的表单面板组件，提供：
+- 动态字段布局
+- 数据验证
+- 数据绑定
+- 错误提示
+- 自动保存
+"""
+
+from collections.abc import Callable
+from datetime import date, datetime
+from enum import Enum
+from typing import Any
+
+from PySide6.QtCore import QDate, QDateTime, Qt, Signal
+from PySide6.QtWidgets import (
+    QButtonGroup,
+    QCheckBox,
+    QComboBox,
+    QDateEdit,
+    QDateTimeEdit,
+    QDoubleSpinBox,
+    QFormLayout,
+    QFrame,
+    QGroupBox,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QMessageBox,
+    QPushButton,
+    QRadioButton,
+    QScrollArea,
+    QSpinBox,
+    QTextEdit,
+    QVBoxLayout,
+    QWidget,
+)
+
+from minicrm.ui.components.base_widget import BaseWidget
+
+
+class FieldType(Enum):
+    """字段类型枚举"""
+
+    TEXT = "text"
+    PASSWORD = "password"
+    EMAIL = "email"
+    PHONE = "phone"
+    NUMBER = "number"
+    DECIMAL = "decimal"
+    TEXTAREA = "textarea"
+    COMBO = "combo"
+    RADIO = "radio"
+    CHECKBOX = "checkbox"
+    DATE = "date"
+    DATETIME = "datetime"
+
+
+class ValidationRule:
+    """验证规则类"""
+
+    def __init__(
+        self,
+        rule_type: str,
+        message: str,
+        value: Any = None,
+        pattern: str = None,
+        validator: Callable = None,
+    ):
+        self.rule_type = rule_type
+        self.message = message
+        self.value = value
+        self.pattern = pattern
+        self.validator = validator
+
+
+class FormPanel(BaseWidget):
+    """
+    通用表单面板组件
+
+    提供完整的表单功能，包括：
+    - 动态字段生成
+    - 数据验证
+    - 数据绑定
+    - 错误提示
+    - 自动保存
+
+    Signals:
+        data_changed: 数据变化信号 (field_name: str, old_value: Any, new_value: Any)
+        validation_changed: 验证状态变化信号 (is_valid: bool, errors: Dict[str, str])
+        form_submitted: 表单提交信号 (form_data: Dict[str, Any])
+        form_reset: 表单重置信号
+    """
+
+    # Qt信号定义
+    data_changed = Signal(str, object, object)
+    validation_changed = Signal(bool, dict)
+    form_submitted = Signal(dict)
+    form_reset = Signal()
+
+    def __init__(
+        self,
+        fields: list[dict[str, Any]],
+        layout_type: str = "form",
+        columns: int = 1,
+        show_buttons: bool = True,
+        auto_validate: bool = True,
+        parent: QWidget | None = None,
+    ):
+        """
+        初始化表单面板
+
+        Args:
+            fields: 字段定义列表
+            layout_type: 布局类型 (form, grid, vertical)
+            columns: 列数（grid布局时使用）
+            show_buttons: 是否显示操作按钮
+            auto_validate: 是否自动验证
+            parent: 父组件
+        """
+        # 表单配置
+        self._fields = fields
+        self._layout_type = layout_type
+        self._columns = columns
+        self._show_buttons = show_buttons
+        self._auto_validate = auto_validate
+
+        # 表单数据
+        self._form_data: dict[str, Any] = {}
+        self._original_data: dict[str, Any] = {}
+        self._validation_errors: dict[str, str] = {}
+
+        # UI组件
+        self._field_widgets: dict[str, QWidget] = {}
+        self._field_labels: dict[str, QLabel] = {}
+        self._error_labels: dict[str, QLabel] = {}
+        self._button_frame: QFrame | None = None
+
+        # 按钮组（用于单选按钮）
+        self._button_groups: dict[str, QButtonGroup] = {}
+
+        # 调用父类初始化（这会触发setup_ui等方法）
+        super().__init__(parent)
+
+        self._logger.debug(f"表单面板初始化完成: {len(fields)}个字段")
+
+    def setup_ui(self) -> None:
+        """设置用户界面"""
+        try:
+            # 主布局
+            main_layout = QVBoxLayout(self)
+            main_layout.setContentsMargins(20, 20, 20, 20)
+            main_layout.setSpacing(20)
+
+            # 创建滚动区域
+            scroll_area = QScrollArea()
+            scroll_area.setWidgetResizable(True)
+            scroll_area.setHorizontalScrollBarPolicy(
+                Qt.ScrollBarPolicy.ScrollBarAsNeeded
+            )
+            scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+
+            # 创建表单内容
+            form_widget = QWidget()
+            self._create_form_layout(form_widget)
+
+            scroll_area.setWidget(form_widget)
+            main_layout.addWidget(scroll_area)
+
+            # 创建按钮区域
+            if self._show_buttons:
+                self._create_buttons(main_layout)
+
+        except Exception as e:
+            self._logger.error(f"表单面板UI设置失败: {e}")
+            raise
+
+    def _create_form_layout(self, parent_widget: QWidget) -> None:
+        """创建表单布局"""
+        if self._layout_type == "form":
+            layout = QFormLayout(parent_widget)
+            layout.setSpacing(15)
+            self._create_form_fields(layout)
+
+        elif self._layout_type == "grid":
+            from PySide6.QtWidgets import QGridLayout
+
+            layout = QGridLayout(parent_widget)
+            layout.setSpacing(15)
+            self._create_grid_fields(layout)
+
+        else:  # vertical
+            layout = QVBoxLayout(parent_widget)
+            layout.setSpacing(15)
+            self._create_vertical_fields(layout)
+
+    def _create_form_fields(self, layout: QFormLayout) -> None:
+        """创建表单字段（QFormLayout）"""
+        for field in self._fields:
+            field_widget, label_widget = self._create_field_widget(field)
+
+            if field_widget and label_widget:
+                # 创建字段容器
+                field_container = QVBoxLayout()
+                field_container.setSpacing(5)
+                field_container.addWidget(field_widget)
+
+                # 创建错误标签
+                error_label = self._create_error_label(field["key"])
+                field_container.addWidget(error_label)
+
+                container_widget = QWidget()
+                container_widget.setLayout(field_container)
+
+                layout.addRow(label_widget, container_widget)
+
+    def _create_grid_fields(self, layout) -> None:
+        """创建网格字段（QGridLayout）"""
+        row = 0
+        col = 0
+
+        for field in self._fields:
+            field_widget, label_widget = self._create_field_widget(field)
+
+            if field_widget and label_widget:
+                # 添加标签
+                layout.addWidget(label_widget, row, col * 2)
+
+                # 创建字段容器
+                field_container = QVBoxLayout()
+                field_container.setSpacing(5)
+                field_container.addWidget(field_widget)
+
+                # 创建错误标签
+                error_label = self._create_error_label(field["key"])
+                field_container.addWidget(error_label)
+
+                container_widget = QWidget()
+                container_widget.setLayout(field_container)
+
+                layout.addWidget(container_widget, row, col * 2 + 1)
+
+                # 更新位置
+                col += 1
+                if col >= self._columns:
+                    col = 0
+                    row += 1
+
+    def _create_vertical_fields(self, layout: QVBoxLayout) -> None:
+        """创建垂直字段（QVBoxLayout）"""
+        for field in self._fields:
+            # 创建字段组
+            group_box = QGroupBox(field.get("title", field["key"]))
+            group_layout = QVBoxLayout(group_box)
+            group_layout.setSpacing(10)
+
+            field_widget, _ = self._create_field_widget(field)
+
+            if field_widget:
+                group_layout.addWidget(field_widget)
+
+                # 创建错误标签
+                error_label = self._create_error_label(field["key"])
+                group_layout.addWidget(error_label)
+
+                layout.addWidget(group_box)
+
+    def _create_field_widget(self, field: dict[str, Any]) -> tuple:
+        """
+        创建字段组件
+
+        Args:
+            field: 字段定义
+
+        Returns:
+            tuple: (字段组件, 标签组件)
+        """
+        try:
+            field_key = field["key"]
+            field_type = FieldType(field.get("type", "text"))
+            field_title = field.get("title", field_key)
+            required = field.get("required", False)
+
+            # 创建标签
+            label_text = field_title
+            if required:
+                label_text += " *"
+
+            label_widget = QLabel(label_text)
+            if required:
+                label_widget.setStyleSheet("color: #dc3545; font-weight: bold;")
+
+            self._field_labels[field_key] = label_widget
+
+            # 创建字段组件
+            field_widget = None
+
+            if field_type == FieldType.TEXT:
+                field_widget = QLineEdit()
+                field_widget.setPlaceholderText(field.get("placeholder", ""))
+
+            elif field_type == FieldType.PASSWORD:
+                field_widget = QLineEdit()
+                field_widget.setEchoMode(QLineEdit.EchoMode.Password)
+                field_widget.setPlaceholderText(field.get("placeholder", ""))
+
+            elif field_type == FieldType.EMAIL:
+                field_widget = QLineEdit()
+                field_widget.setPlaceholderText(
+                    field.get("placeholder", "请输入邮箱地址")
+                )
+
+            elif field_type == FieldType.PHONE:
+                field_widget = QLineEdit()
+                field_widget.setPlaceholderText(
+                    field.get("placeholder", "请输入手机号码")
+                )
+
+            elif field_type == FieldType.NUMBER:
+                field_widget = QSpinBox()
+                field_widget.setMinimum(field.get("min", 0))
+                field_widget.setMaximum(field.get("max", 999999))
+
+            elif field_type == FieldType.DECIMAL:
+                field_widget = QDoubleSpinBox()
+                field_widget.setMinimum(field.get("min", 0.0))
+                field_widget.setMaximum(field.get("max", 999999.99))
+                field_widget.setDecimals(field.get("decimals", 2))
+
+            elif field_type == FieldType.TEXTAREA:
+                field_widget = QTextEdit()
+                field_widget.setMaximumHeight(field.get("height", 100))
+                field_widget.setPlaceholderText(field.get("placeholder", ""))
+
+            elif field_type == FieldType.COMBO:
+                field_widget = QComboBox()
+                options = field.get("options", [])
+                for option in options:
+                    if isinstance(option, dict):
+                        field_widget.addItem(option["label"], option["value"])
+                    else:
+                        field_widget.addItem(str(option), option)
+
+            elif field_type == FieldType.RADIO:
+                field_widget = QWidget()
+                radio_layout = QHBoxLayout(field_widget)
+                radio_layout.setContentsMargins(0, 0, 0, 0)
+
+                button_group = QButtonGroup()
+                self._button_groups[field_key] = button_group
+
+                options = field.get("options", [])
+                for i, option in enumerate(options):
+                    if isinstance(option, dict):
+                        radio_btn = QRadioButton(option["label"])
+                        radio_btn.setProperty("value", option["value"])
+                    else:
+                        radio_btn = QRadioButton(str(option))
+                        radio_btn.setProperty("value", option)
+
+                    button_group.addButton(radio_btn, i)
+                    radio_layout.addWidget(radio_btn)
+
+            elif field_type == FieldType.CHECKBOX:
+                field_widget = QCheckBox(field.get("text", ""))
+
+            elif field_type == FieldType.DATE:
+                field_widget = QDateEdit()
+                field_widget.setDate(QDate.currentDate())
+                field_widget.setCalendarPopup(True)
+
+            elif field_type == FieldType.DATETIME:
+                field_widget = QDateTimeEdit()
+                field_widget.setDateTime(QDateTime.currentDateTime())
+                field_widget.setCalendarPopup(True)
+
+            if field_widget:
+                # 设置工具提示
+                if "tooltip" in field:
+                    field_widget.setToolTip(field["tooltip"])
+
+                # 设置启用状态
+                if "enabled" in field:
+                    field_widget.setEnabled(field["enabled"])
+
+                # 存储组件
+                self._field_widgets[field_key] = field_widget
+
+                return field_widget, label_widget
+
+            return None, None
+
+        except Exception as e:
+            self._logger.error(f"创建字段组件失败: {e}")
+            return None, None
+
+    def _create_error_label(self, field_key: str) -> QLabel:
+        """创建错误标签"""
+        error_label = QLabel()
+        error_label.setObjectName("errorLabel")
+        error_label.setStyleSheet("color: #dc3545; font-size: 12px;")
+        error_label.hide()
+
+        self._error_labels[field_key] = error_label
+        return error_label
+
+    def _create_buttons(self, layout: QVBoxLayout) -> None:
+        """创建操作按钮"""
+        self._button_frame = QFrame()
+        button_layout = QHBoxLayout(self._button_frame)
+        button_layout.setContentsMargins(0, 10, 0, 0)
+
+        # 弹性空间
+        button_layout.addStretch()
+
+        # 重置按钮
+        reset_btn = QPushButton("重置")
+        reset_btn.setObjectName("resetButton")
+        reset_btn.clicked.connect(self.reset_form)
+        button_layout.addWidget(reset_btn)
+
+        # 提交按钮
+        submit_btn = QPushButton("提交")
+        submit_btn.setObjectName("submitButton")
+        submit_btn.clicked.connect(self.submit_form)
+        button_layout.addWidget(submit_btn)
+
+        layout.addWidget(self._button_frame)
+
+    def setup_connections(self) -> None:
+        """设置信号连接"""
+        for field_key, widget in self._field_widgets.items():
+            if isinstance(widget, QLineEdit):
+                widget.textChanged.connect(
+                    lambda text, key=field_key: self._on_field_changed(key, text)
+                )
+            elif isinstance(widget, QTextEdit):
+                widget.textChanged.connect(
+                    lambda key=field_key, w=widget: self._on_field_changed(
+                        key, w.toPlainText()
+                    )
+                )
+            elif isinstance(widget, QComboBox):
+                widget.currentTextChanged.connect(
+                    lambda text, key=field_key: self._on_field_changed(key, text)
+                )
+            elif isinstance(widget, QSpinBox | QDoubleSpinBox):
+                widget.valueChanged.connect(
+                    lambda value, key=field_key: self._on_field_changed(key, value)
+                )
+            elif isinstance(widget, QCheckBox):
+                widget.toggled.connect(
+                    lambda checked, key=field_key: self._on_field_changed(key, checked)
+                )
+            elif isinstance(widget, QDateEdit | QDateTimeEdit):
+                widget.dateTimeChanged.connect(
+                    lambda dt, key=field_key: self._on_field_changed(key, dt)
+                )
+            elif field_key in self._button_groups:
+                button_group = self._button_groups[field_key]
+                button_group.buttonClicked.connect(
+                    lambda btn, key=field_key: self._on_radio_changed(key, btn)
+                )
+
+    def apply_styles(self) -> None:
+        """应用样式"""
+        self.setStyleSheet("""
+            QGroupBox {
+                font-weight: bold;
+                border: 1px solid #dee2e6;
+                border-radius: 6px;
+                margin-top: 10px;
+                padding-top: 10px;
+            }
+
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                left: 10px;
+                padding: 0 5px 0 5px;
+            }
+
+            QLineEdit, QTextEdit, QComboBox, QSpinBox, QDoubleSpinBox, QDateEdit, QDateTimeEdit {
+                border: 1px solid #ced4da;
+                border-radius: 4px;
+                padding: 8px;
+                font-size: 13px;
+            }
+
+            QLineEdit:focus, QTextEdit:focus, QComboBox:focus, QSpinBox:focus, QDoubleSpinBox:focus, QDateEdit:focus, QDateTimeEdit:focus {
+                border-color: #007bff;
+                outline: none;
+            }
+
+            QLineEdit[error="true"], QTextEdit[error="true"], QComboBox[error="true"] {
+                border-color: #dc3545;
+            }
+
+            QPushButton#submitButton {
+                background-color: #007bff;
+                color: white;
+                border: none;
+                padding: 10px 20px;
+                border-radius: 4px;
+                font-weight: bold;
+                min-width: 80px;
+            }
+
+            QPushButton#submitButton:hover {
+                background-color: #0056b3;
+            }
+
+            QPushButton#resetButton {
+                background-color: #6c757d;
+                color: white;
+                border: none;
+                padding: 10px 20px;
+                border-radius: 4px;
+                font-weight: bold;
+                min-width: 80px;
+            }
+
+            QPushButton#resetButton:hover {
+                background-color: #545b62;
+            }
+
+            QLabel[error="true"] {
+                color: #dc3545;
+            }
+        """)
+
+    def set_data(self, data: dict[str, Any]) -> None:
+        """
+        设置表单数据
+
+        Args:
+            data: 表单数据
+        """
+        try:
+            self._form_data = data.copy()
+            self._original_data = data.copy()
+
+            # 更新字段值
+            for field_key, value in data.items():
+                self._set_field_value(field_key, value)
+
+            # 清除验证错误
+            self._validation_errors.clear()
+            self._update_error_display()
+
+            self._logger.debug(f"表单数据设置完成: {len(data)}个字段")
+
+        except Exception as e:
+            self._logger.error(f"设置表单数据失败: {e}")
+
+    def get_data(self) -> dict[str, Any]:
+        """
+        获取表单数据
+
+        Returns:
+            Dict[str, Any]: 表单数据
+        """
+        try:
+            data = {}
+
+            for field_key, widget in self._field_widgets.items():
+                value = self._get_field_value(field_key, widget)
+                data[field_key] = value
+
+            return data
+
+        except Exception as e:
+            self._logger.error(f"获取表单数据失败: {e}")
+            return {}
+
+    def _set_field_value(self, field_key: str, value: Any) -> None:
+        """设置字段值"""
+        try:
+            if field_key not in self._field_widgets:
+                return
+
+            widget = self._field_widgets[field_key]
+
+            if isinstance(widget, QLineEdit):
+                widget.setText(str(value) if value is not None else "")
+            elif isinstance(widget, QTextEdit):
+                widget.setPlainText(str(value) if value is not None else "")
+            elif isinstance(widget, QComboBox):
+                index = widget.findData(value)
+                if index >= 0:
+                    widget.setCurrentIndex(index)
+                else:
+                    widget.setCurrentText(str(value) if value is not None else "")
+            elif isinstance(widget, QSpinBox | QDoubleSpinBox):
+                widget.setValue(value if value is not None else 0)
+            elif isinstance(widget, QCheckBox):
+                widget.setChecked(bool(value))
+            elif isinstance(widget, QDateEdit):
+                if isinstance(value, date | datetime):
+                    widget.setDate(QDate(value))
+                elif isinstance(value, str):
+                    widget.setDate(QDate.fromString(value, Qt.DateFormat.ISODate))
+            elif isinstance(widget, QDateTimeEdit):
+                if isinstance(value, datetime):
+                    widget.setDateTime(QDateTime(value))
+                elif isinstance(value, str):
+                    widget.setDateTime(
+                        QDateTime.fromString(value, Qt.DateFormat.ISODate)
+                    )
+            elif field_key in self._button_groups:
+                button_group = self._button_groups[field_key]
+                for button in button_group.buttons():
+                    if button.property("value") == value:
+                        button.setChecked(True)
+                        break
+
+        except Exception as e:
+            self._logger.error(f"设置字段值失败: {e}")
+
+    def _get_field_value(self, field_key: str, widget: QWidget) -> Any:
+        """获取字段值"""
+        try:
+            if isinstance(widget, QLineEdit):
+                return widget.text()
+            elif isinstance(widget, QTextEdit):
+                return widget.toPlainText()
+            elif isinstance(widget, QComboBox):
+                return widget.currentData() or widget.currentText()
+            elif isinstance(widget, QSpinBox | QDoubleSpinBox):
+                return widget.value()
+            elif isinstance(widget, QCheckBox):
+                return widget.isChecked()
+            elif isinstance(widget, QDateEdit):
+                return widget.date().toPython()
+            elif isinstance(widget, QDateTimeEdit):
+                return widget.dateTime().toPython()
+            elif field_key in self._button_groups:
+                button_group = self._button_groups[field_key]
+                checked_button = button_group.checkedButton()
+                if checked_button:
+                    return checked_button.property("value")
+
+            return None
+
+        except Exception as e:
+            self._logger.error(f"获取字段值失败: {e}")
+            return None
+
+    def validate_form(self) -> bool:
+        """
+        验证表单
+
+        Returns:
+            bool: 是否验证通过
+        """
+        try:
+            self._validation_errors.clear()
+
+            for field in self._fields:
+                field_key = field["key"]
+                field_value = self._get_field_value(
+                    field_key, self._field_widgets.get(field_key)
+                )
+
+                # 验证必填字段
+                if field.get("required", False):
+                    if not field_value or (
+                        isinstance(field_value, str) and not field_value.strip()
+                    ):
+                        self._validation_errors[field_key] = (
+                            f"{field.get('title', field_key)}不能为空"
+                        )
+                        continue
+
+                # 验证规则
+                validation_rules = field.get("validation", [])
+                for rule in validation_rules:
+                    if not self._validate_field(field_value, rule):
+                        self._validation_errors[field_key] = rule.message
+                        break
+
+            # 更新错误显示
+            self._update_error_display()
+
+            # 发送验证状态变化信号
+            is_valid = len(self._validation_errors) == 0
+            self.validation_changed.emit(is_valid, self._validation_errors.copy())
+
+            return is_valid
+
+        except Exception as e:
+            self._logger.error(f"表单验证失败: {e}")
+            return False
+
+    def _validate_field(self, value: Any, rule: ValidationRule) -> bool:
+        """验证单个字段"""
+        try:
+            if rule.rule_type == "min_length":
+                return len(str(value)) >= rule.value
+            elif rule.rule_type == "max_length":
+                return len(str(value)) <= rule.value
+            elif rule.rule_type == "pattern":
+                import re
+
+                return bool(re.match(rule.pattern, str(value)))
+            elif rule.rule_type == "email":
+                import re
+
+                email_pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+                return bool(re.match(email_pattern, str(value)))
+            elif rule.rule_type == "phone":
+                import re
+
+                phone_pattern = r"^1[3-9]\d{9}$"
+                return bool(re.match(phone_pattern, str(value)))
+            elif rule.rule_type == "custom" and rule.validator:
+                return rule.validator(value)
+
+            return True
+
+        except Exception as e:
+            self._logger.error(f"字段验证失败: {e}")
+            return False
+
+    def _update_error_display(self) -> None:
+        """更新错误显示"""
+        try:
+            for field_key, error_label in self._error_labels.items():
+                if field_key in self._validation_errors:
+                    error_label.setText(self._validation_errors[field_key])
+                    error_label.show()
+
+                    # 设置字段错误样式
+                    if field_key in self._field_widgets:
+                        widget = self._field_widgets[field_key]
+                        widget.setProperty("error", True)
+                        widget.style().unpolish(widget)
+                        widget.style().polish(widget)
+                else:
+                    error_label.hide()
+
+                    # 清除字段错误样式
+                    if field_key in self._field_widgets:
+                        widget = self._field_widgets[field_key]
+                        widget.setProperty("error", False)
+                        widget.style().unpolish(widget)
+                        widget.style().polish(widget)
+
+        except Exception as e:
+            self._logger.error(f"更新错误显示失败: {e}")
+
+    def _on_field_changed(self, field_key: str, new_value: Any) -> None:
+        """处理字段变化"""
+        try:
+            old_value = self._form_data.get(field_key)
+            self._form_data[field_key] = new_value
+
+            # 发送数据变化信号
+            self.data_changed.emit(field_key, old_value, new_value)
+
+            # 自动验证
+            if self._auto_validate:
+                self.validate_form()
+
+        except Exception as e:
+            self._logger.error(f"处理字段变化失败: {e}")
+
+    def _on_radio_changed(self, field_key: str, button) -> None:
+        """处理单选按钮变化"""
+        try:
+            new_value = button.property("value")
+            old_value = self._form_data.get(field_key)
+            self._form_data[field_key] = new_value
+
+            # 发送数据变化信号
+            self.data_changed.emit(field_key, old_value, new_value)
+
+            # 自动验证
+            if self._auto_validate:
+                self.validate_form()
+
+        except Exception as e:
+            self._logger.error(f"处理单选按钮变化失败: {e}")
+
+    def submit_form(self) -> None:
+        """提交表单"""
+        try:
+            if self.validate_form():
+                form_data = self.get_data()
+                self.form_submitted.emit(form_data)
+                self._logger.debug("表单提交成功")
+            else:
+                QMessageBox.warning(
+                    self, "验证失败", "请检查表单中的错误并修正后再提交。"
+                )
+
+        except Exception as e:
+            self._logger.error(f"表单提交失败: {e}")
+            QMessageBox.critical(self, "提交失败", f"表单提交失败: {str(e)}")
+
+    def reset_form(self) -> None:
+        """重置表单"""
+        try:
+            # 恢复原始数据
+            self.set_data(self._original_data)
+
+            # 发送重置信号
+            self.form_reset.emit()
+
+            self._logger.debug("表单重置完成")
+
+        except Exception as e:
+            self._logger.error(f"表单重置失败: {e}")
+
+    def clear_form(self) -> None:
+        """清空表单"""
+        try:
+            empty_data = {key: None for key in self._field_widgets.keys()}
+            self.set_data(empty_data)
+
+            self._logger.debug("表单清空完成")
+
+        except Exception as e:
+            self._logger.error(f"表单清空失败: {e}")
+
+    def is_modified(self) -> bool:
+        """
+        检查表单是否已修改
+
+        Returns:
+            bool: 是否已修改
+        """
+        current_data = self.get_data()
+        return current_data != self._original_data
+
+    def get_validation_errors(self) -> dict[str, str]:
+        """
+        获取验证错误
+
+        Returns:
+            Dict[str, str]: 验证错误字典
+        """
+        return self._validation_errors.copy()
+
+    def set_field_enabled(self, field_key: str, enabled: bool) -> None:
+        """
+        设置字段启用状态
+
+        Args:
+            field_key: 字段键
+            enabled: 是否启用
+        """
+        if field_key in self._field_widgets:
+            self._field_widgets[field_key].setEnabled(enabled)
+
+    def set_field_visible(self, field_key: str, visible: bool) -> None:
+        """
+        设置字段可见性
+
+        Args:
+            field_key: 字段键
+            visible: 是否可见
+        """
+        if field_key in self._field_widgets:
+            self._field_widgets[field_key].setVisible(visible)
+        if field_key in self._field_labels:
+            self._field_labels[field_key].setVisible(visible)
+
+    def cleanup_resources(self) -> None:
+        """清理资源"""
+        try:
+            # 清理按钮组
+            for button_group in self._button_groups.values():
+                button_group.deleteLater()
+            self._button_groups.clear()
+
+            self._logger.debug("表单面板资源清理完成")
+
+        except Exception as e:
+            self._logger.error(f"表单面板资源清理失败: {e}")
+
+    def __str__(self) -> str:
+        """返回表单的字符串表示"""
+        return f"FormPanel(fields={len(self._fields)}, layout={self._layout_type})"

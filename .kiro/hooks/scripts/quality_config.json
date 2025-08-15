@@ -1,0 +1,48 @@
+{
+  "check_pep8": true,
+  "check_type_hints": true,
+  "check_docstrings": true,
+  "check_imports": true,
+  "max_line_length": 88,
+  "naming_conventions": {
+    "class_names": "PascalCase",
+    "function_names": "snake_case",
+    "variable_names": "snake_case",
+    "constant_names": "UPPER_CASE"
+  },
+  "complexity_threshold": 10,
+  "docstring_min_length": 10,
+  "severity_levels": {
+    "syntax_error": "error",
+    "unused_import": "warning",
+    "line_too_long": "warning",
+    "naming_convention": "warning",
+    "missing_docstring": "info",
+    "missing_type_hint": "info",
+    "high_complexity": "warning"
+  },
+  "auto_fix_rules": {
+    "unused_import": true,
+    "line_too_long": true,
+    "naming_convention": true,
+    "missing_docstring": true,
+    "missing_type_hint": true
+  },
+  "exclude_patterns": [
+    "__pycache__/**",
+    "*.pyc",
+    "venv/**",
+    ".git/**",
+    "build/**",
+    "dist/**"
+  ],
+  "minicrm_specific": {
+    "check_business_logic": true,
+    "check_ui_patterns": true,
+    "check_database_patterns": true,
+    "required_imports": [
+      "typing",
+      "dataclasses"
+    ]
+  }
+}

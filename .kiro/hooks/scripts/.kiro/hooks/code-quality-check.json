@@ -1,0 +1,57 @@
+{
+  "name": "code-quality-check",
+  "displayName": "代码质量检查",
+  "description": "自动检查Python代码质量，包括PEP8、类型注解、文档字符串等",
+  "version": "1.0.0",
+  "author": "MiniCRM Team",
+  "triggers": [
+    {
+      "event": "file:save",
+      "patterns": [
+        "*.py"
+      ],
+      "exclude": [
+        "__pycache__/**",
+        "*.pyc",
+        "venv/**",
+        ".git/**"
+      ]
+    }
+  ],
+  "execution": {
+    "command": "python",
+    "args": [
+      ".kiro/hooks/scripts/kiro_integration.py",
+      "file_save",
+      "${filePath}"
+    ],
+    "cwd": "${workspaceRoot}",
+    "timeout": 30000,
+    "shell": false
+  },
+  "output": {
+    "format": "json",
+    "showInProblems": true,
+    "showInOutput": true,
+    "showNotification": true
+  },
+  "settings": {
+    "enabled": true,
+    "autoFix": true,
+    "severity": {
+      "error": "error",
+      "warning": "warning",
+      "info": "info"
+    }
+  },
+  "manual": {
+    "command": "python",
+    "args": [
+      ".kiro/hooks/scripts/kiro_integration.py",
+      "manual",
+      "${selectedFiles}"
+    ],
+    "title": "检查选中文件的代码质量",
+    "icon": "🔍"
+  }
+}

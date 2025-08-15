@@ -1,0 +1,130 @@
+# MiniCRM Ruff配置文件
+# 针对MiniCRM项目优化的代码质量检查配置
+
+target-version = "py311"
+line-length = 88
+src = ["src"]
+
+[lint]
+# 选择适合MiniCRM项目的规则
+select = [
+    # 错误和语法问题
+    "E", # pycodestyle errors
+    "F", # pyflakes
+    "W", # pycodestyle warnings
+
+    # 代码质量
+    "B",  # flake8-bugbear
+    "C4", # flake8-comprehensions
+    "I",  # isort
+    "N",  # pep8-naming
+    "UP", # pyupgrade
+
+    # 安全性（选择性启用）
+    "S101", # assert检查
+    "S102", # exec检查
+    "S103", # 文件权限检查
+
+    # 性能
+    "PERF", # perflint
+
+    # 简化
+    "SIM", # flake8-simplify
+]
+
+ignore = [
+    # 文档字符串（在开发阶段放宽）
+    "D",
+
+    # 类型注解（MyPy负责）
+    "ANN",
+
+    # 复杂度检查（适度放宽）
+    "PLR0913", # 参数过多
+    "PLR0915", # 语句过多
+    "C901",    # 复杂度过高
+
+    # 安全检查（开发环境）
+    "S104", # 硬编码绑定
+    "S105", # 硬编码密码
+    "S106", # 硬编码密码
+    "S107", # 硬编码密码
+    "S108", # 临时文件
+
+    # 其他宽松设置
+    "EM101",  # 异常消息字符串
+    "EM102",  # 异常消息f-string
+    "TRY003", # 异常消息过长
+    "FBT001", # 布尔参数
+    "FBT002", # 布尔默认值
+    "PTH123", # Path.open
+    "DTZ005", # timezone naive datetime
+
+    # 允许print语句（调试用）
+    "T201",
+]
+
+# 针对不同文件类型的特殊规则
+[lint.per-file-ignores]
+# 测试文件 - 更宽松的规则
+"tests/*" = [
+    "S101",    # 允许assert
+    "PLR2004", # 允许魔法数字
+    "ANN",     # 不要求类型注解
+]
+
+# 示例文件 - 最宽松的规则
+"examples/*" = ["ALL"]
+
+# 脚本文件 - 允许更多灵活性
+"scripts/*" = [
+    "T201",    # 允许print
+    "S101",    # 允许assert
+    "PLR2004", # 允许魔法数字
+]
+
+# 配置文件 - 允许所有
+"**/config/*" = ["ALL"]
+
+# 主入口文件 - 允许print
+"src/minicrm/main.py" = ["T201"]
+
+# UI文件 - 允许更多复杂度
+"src/minicrm/ui/*" = [
+    "PLR0913", # 允许更多参数（UI组件需要）
+    "PLR0915", # 允许更多语句（UI布局代码）
+    "C901",    # 允许更高复杂度（事件处理）
+]
+
+[format]
+# 代码格式化设置
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
+
+# 排除格式化的文件
+exclude = [
+    "migrations",
+    "*.pyi",
+    "__pycache__",
+    ".git",
+    ".mypy_cache",
+    ".ruff_cache",
+    ".venv",
+    "venv",
+]
+
+[lint.isort]
+# import排序配置
+known-first-party = ["minicrm", "transfunctions"]
+force-single-line = false
+lines-after-imports = 2
+
+[lint.mccabe]
+# 复杂度检查配置
+max-complexity = 15 # 适度的复杂度限制
+
+[lint.pycodestyle]
+# 代码风格配置
+max-line-length = 88
+ignore-overlong-task-comments = true

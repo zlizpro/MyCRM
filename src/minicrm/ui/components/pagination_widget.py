@@ -1,0 +1,653 @@
+"""
+MiniCRM 分页组件
+
+实现通用的分页组件，提供：
+- 页面导航
+- 页面大小选择
+- 页面跳转
+- 分页信息显示
+- 响应式布局
+"""
+
+import logging
+import math
+
+from PySide6.QtCore import Signal
+from PySide6.QtWidgets import (
+    QComboBox,
+    QFrame,
+    QHBoxLayout,
+    QLabel,
+    QPushButton,
+    QSpinBox,
+    QVBoxLayout,
+    QWidget,
+)
+
+
+# 导入transfunctions计算函数
+try:
+    from transfunctions.calculations import calculate_pagination
+
+    _TRANSFUNCTIONS_AVAILABLE = True
+except ImportError:
+    _TRANSFUNCTIONS_AVAILABLE = False
+
+
+class PaginationWidget(QWidget):
+    """
+    分页组件
+
+    提供完整的分页功能，包括：
+    - 页面导航按钮
+    - 页面大小选择
+    - 页面跳转输入
+    - 分页信息显示
+    - 响应式按钮显示
+
+    Signals:
+        page_changed: 页面变化信号 (page: int)
+        page_size_changed: 页面大小变化信号 (page_size: int)
+    """
+
+    # Qt信号定义
+    page_changed = Signal(int)
+    page_size_changed = Signal(int)
+
+    def __init__(
+        self,
+        total_items: int = 0,
+        page_size: int = 20,
+        current_page: int = 1,
+        page_size_options: list[int] = None,
+        show_page_size_selector: bool = True,
+        show_page_jumper: bool = True,
+        show_info: bool = True,
+        max_visible_pages: int = 7,
+        parent: QWidget | None = None,
+    ):
+        """
+        初始化分页组件
+
+        Args:
+            total_items: 总项目数
+            page_size: 每页项目数
+            current_page: 当前页码
+            page_size_options: 页面大小选项
+            show_page_size_selector: 是否显示页面大小选择器
+            show_page_jumper: 是否显示页面跳转器
+            show_info: 是否显示分页信息
+            max_visible_pages: 最大可见页码数
+            parent: 父组件
+        """
+        super().__init__(parent)
+
+        self._logger = logging.getLogger(__name__)
+
+        # 分页配置
+        self._total_items = total_items
+        self._page_size = page_size
+        self._current_page = current_page
+        self._page_size_options = page_size_options or [10, 20, 50, 100]
+        self._show_page_size_selector = show_page_size_selector
+        self._show_page_jumper = show_page_jumper
+        self._show_info = show_info
+        self._max_visible_pages = max_visible_pages
+
+        # 计算分页信息
+        self._total_pages = self._calculate_total_pages()
+
+        # UI组件
+        self._info_label: QLabel | None = None
+        self._page_size_combo: QComboBox | None = None
+        self._page_jumper: QSpinBox | None = None
+        self._page_buttons: list[QPushButton] = []
+        self._prev_button: QPushButton | None = None
+        self._next_button: QPushButton | None = None
+        self._first_button: QPushButton | None = None
+        self._last_button: QPushButton | None = None
+
+        # 设置组件
+        self._setup_ui()
+        self._setup_connections()
+        self._update_display()
+
+        self._logger.debug(f"分页组件初始化完成: {self._total_pages}页")
+
+    def _setup_ui(self) -> None:
+        """设置用户界面"""
+        try:
+            # 主布局
+            main_layout = QVBoxLayout(self)
+            main_layout.setContentsMargins(0, 0, 0, 0)
+            main_layout.setSpacing(10)
+
+            # 分页信息行
+            if self._show_info:
+                self._create_info_row(main_layout)
+
+            # 分页控制行
+            self._create_pagination_row(main_layout)
+
+            # 应用样式
+            self._apply_styles()
+
+        except Exception as e:
+            self._logger.error(f"分页组件UI设置失败: {e}")
+            raise
+
+    def _create_info_row(self, layout: QVBoxLayout) -> None:
+        """创建信息行"""
+        info_frame = QFrame()
+        info_layout = QHBoxLayout(info_frame)
+        info_layout.setContentsMargins(0, 0, 0, 0)
+
+        # 分页信息标签
+        self._info_label = QLabel()
+        self._info_label.setObjectName("infoLabel")
+        info_layout.addWidget(self._info_label)
+
+        info_layout.addStretch()
+
+        # 页面大小选择器
+        if self._show_page_size_selector:
+            info_layout.addWidget(QLabel("每页显示:"))
+
+            self._page_size_combo = QComboBox()
+            self._page_size_combo.setObjectName("pageSizeCombo")
+
+            for size in self._page_size_options:
+                self._page_size_combo.addItem(f"{size} 条", size)
+
+            # 设置当前页面大小
+            index = self._page_size_combo.findData(self._page_size)
+            if index >= 0:
+                self._page_size_combo.setCurrentIndex(index)
+
+            info_layout.addWidget(self._page_size_combo)
+
+        layout.addWidget(info_frame)
+
+    def _create_pagination_row(self, layout: QVBoxLayout) -> None:
+        """创建分页控制行"""
+        pagination_frame = QFrame()
+        pagination_layout = QHBoxLayout(pagination_frame)
+        pagination_layout.setContentsMargins(0, 0, 0, 0)
+        pagination_layout.setSpacing(5)
+
+        # 左侧：首页和上一页按钮
+        self._first_button = QPushButton("⏮️")
+        self._first_button.setObjectName("navButton")
+        self._first_button.setToolTip("首页")
+        self._first_button.setFixedSize(32, 32)
+        pagination_layout.addWidget(self._first_button)
+
+        self._prev_button = QPushButton("⏪")
+        self._prev_button.setObjectName("navButton")
+        self._prev_button.setToolTip("上一页")
+        self._prev_button.setFixedSize(32, 32)
+        pagination_layout.addWidget(self._prev_button)
+
+        # 中间：页码按钮区域
+        self._page_buttons_layout = QHBoxLayout()
+        self._page_buttons_layout.setSpacing(2)
+        pagination_layout.addLayout(self._page_buttons_layout)
+
+        # 右侧：下一页和末页按钮
+        self._next_button = QPushButton("⏩")
+        self._next_button.setObjectName("navButton")
+        self._next_button.setToolTip("下一页")
+        self._next_button.setFixedSize(32, 32)
+        pagination_layout.addWidget(self._next_button)
+
+        self._last_button = QPushButton("⏭️")
+        self._last_button.setObjectName("navButton")
+        self._last_button.setToolTip("末页")
+        self._last_button.setFixedSize(32, 32)
+        pagination_layout.addWidget(self._last_button)
+
+        # 页面跳转器
+        if self._show_page_jumper:
+            pagination_layout.addWidget(QLabel("跳转到:"))
+
+            self._page_jumper = QSpinBox()
+            self._page_jumper.setObjectName("pageJumper")
+            self._page_jumper.setMinimum(1)
+            self._page_jumper.setMaximum(max(1, self._total_pages))
+            self._page_jumper.setValue(self._current_page)
+            self._page_jumper.setFixedWidth(60)
+            pagination_layout.addWidget(self._page_jumper)
+
+            pagination_layout.addWidget(QLabel("页"))
+
+        layout.addWidget(pagination_frame)
+
+    def _setup_connections(self) -> None:
+        """设置信号连接"""
+        # 导航按钮
+        if self._first_button:
+            self._first_button.clicked.connect(lambda: self.go_to_page(1))
+
+        if self._prev_button:
+            self._prev_button.clicked.connect(self.previous_page)
+
+        if self._next_button:
+            self._next_button.clicked.connect(self.next_page)
+
+        if self._last_button:
+            self._last_button.clicked.connect(
+                lambda: self.go_to_page(self._total_pages)
+            )
+
+        # 页面大小选择器
+        if self._page_size_combo:
+            self._page_size_combo.currentTextChanged.connect(self._on_page_size_changed)
+
+        # 页面跳转器
+        if self._page_jumper:
+            self._page_jumper.valueChanged.connect(self.go_to_page)
+
+    def _apply_styles(self) -> None:
+        """应用样式"""
+        self.setStyleSheet("""
+            QLabel#infoLabel {
+                color: #6c757d;
+                font-size: 13px;
+            }
+
+            QComboBox#pageSizeCombo {
+                border: 1px solid #ced4da;
+                border-radius: 4px;
+                padding: 4px 8px;
+                background-color: white;
+                min-width: 80px;
+            }
+
+            QComboBox#pageSizeCombo:focus {
+                border-color: #007bff;
+            }
+
+            QSpinBox#pageJumper {
+                border: 1px solid #ced4da;
+                border-radius: 4px;
+                padding: 4px;
+                background-color: white;
+            }
+
+            QSpinBox#pageJumper:focus {
+                border-color: #007bff;
+            }
+
+            QPushButton#navButton {
+                border: 1px solid #ced4da;
+                border-radius: 4px;
+                background-color: white;
+                font-size: 12px;
+            }
+
+            QPushButton#navButton:hover {
+                background-color: #e9ecef;
+                border-color: #adb5bd;
+            }
+
+            QPushButton#navButton:pressed {
+                background-color: #dee2e6;
+            }
+
+            QPushButton#navButton:disabled {
+                background-color: #f8f9fa;
+                color: #6c757d;
+                border-color: #dee2e6;
+            }
+
+            QPushButton#pageButton {
+                border: 1px solid #ced4da;
+                border-radius: 4px;
+                background-color: white;
+                color: #495057;
+                font-size: 13px;
+                min-width: 32px;
+                max-width: 32px;
+                height: 32px;
+            }
+
+            QPushButton#pageButton:hover {
+                background-color: #e9ecef;
+                border-color: #adb5bd;
+            }
+
+            QPushButton#pageButton:pressed {
+                background-color: #dee2e6;
+            }
+
+            QPushButton#currentPageButton {
+                border: 1px solid #007bff;
+                background-color: #007bff;
+                color: white;
+                font-weight: bold;
+            }
+
+            QPushButton#ellipsisButton {
+                border: none;
+                background-color: transparent;
+                color: #6c757d;
+                font-size: 13px;
+            }
+        """)
+
+    def _calculate_total_pages(self) -> int:
+        """计算总页数 - 使用transfunctions标准计算函数"""
+        if _TRANSFUNCTIONS_AVAILABLE:
+            try:
+                result = calculate_pagination(self._total_items, self._page_size)
+                return result.total_pages
+            except Exception as e:
+                self._logger.warning(f"transfunctions计算失败，使用本地实现: {e}")
+
+        # 本地实现作为回退
+        if self._page_size <= 0:
+            return 1
+        return max(1, math.ceil(self._total_items / self._page_size))
+
+    def _update_display(self) -> None:
+        """更新显示"""
+        try:
+            # 重新计算总页数
+            self._total_pages = self._calculate_total_pages()
+
+            # 确保当前页面有效
+            if self._current_page > self._total_pages:
+                self._current_page = self._total_pages
+            elif self._current_page < 1:
+                self._current_page = 1
+
+            # 更新信息标签
+            self._update_info_label()
+
+            # 更新页码按钮
+            self._update_page_buttons()
+
+            # 更新导航按钮状态
+            self._update_nav_buttons()
+
+            # 更新页面跳转器
+            self._update_page_jumper()
+
+        except Exception as e:
+            self._logger.error(f"更新分页显示失败: {e}")
+
+    def _update_info_label(self) -> None:
+        """更新信息标签"""
+        if not self._info_label:
+            return
+
+        try:
+            start_item = (self._current_page - 1) * self._page_size + 1
+            end_item = min(self._current_page * self._page_size, self._total_items)
+
+            if self._total_items == 0:
+                info_text = "暂无数据"
+            else:
+                info_text = (
+                    f"显示第 {start_item}-{end_item} 条，共 {self._total_items} 条记录"
+                )
+
+            self._info_label.setText(info_text)
+
+        except Exception as e:
+            self._logger.error(f"更新信息标签失败: {e}")
+
+    def _update_page_buttons(self) -> None:
+        """更新页码按钮"""
+        try:
+            # 清除现有按钮
+            for button in self._page_buttons:
+                button.deleteLater()
+            self._page_buttons.clear()
+
+            if self._total_pages <= 1:
+                return
+
+            # 计算显示的页码范围
+            visible_pages = self._calculate_visible_pages()
+
+            for page_info in visible_pages:
+                if page_info["type"] == "page":
+                    # 页码按钮
+                    button = QPushButton(str(page_info["page"]))
+
+                    if page_info["page"] == self._current_page:
+                        button.setObjectName("currentPageButton")
+                    else:
+                        button.setObjectName("pageButton")
+
+                    button.setFixedSize(32, 32)
+                    button.clicked.connect(
+                        lambda checked, p=page_info["page"]: self.go_to_page(p)
+                    )
+
+                elif page_info["type"] == "ellipsis":
+                    # 省略号按钮
+                    button = QPushButton("...")
+                    button.setObjectName("ellipsisButton")
+                    button.setFixedSize(32, 32)
+                    button.setEnabled(False)
+
+                self._page_buttons.append(button)
+                self._page_buttons_layout.addWidget(button)
+
+        except Exception as e:
+            self._logger.error(f"更新页码按钮失败: {e}")
+
+    def _calculate_visible_pages(self) -> list[dict]:
+        """计算可见页码"""
+        try:
+            if self._total_pages <= self._max_visible_pages:
+                # 总页数不超过最大可见页数，显示所有页码
+                return [
+                    {"type": "page", "page": i} for i in range(1, self._total_pages + 1)
+                ]
+
+            visible_pages = []
+
+            # 计算当前页周围的页码范围
+            half_visible = self._max_visible_pages // 2
+            start_page = max(1, self._current_page - half_visible)
+            end_page = min(self._total_pages, self._current_page + half_visible)
+
+            # 调整范围以确保显示足够的页码
+            if end_page - start_page + 1 < self._max_visible_pages:
+                if start_page == 1:
+                    end_page = min(
+                        self._total_pages, start_page + self._max_visible_pages - 1
+                    )
+                else:
+                    start_page = max(1, end_page - self._max_visible_pages + 1)
+
+            # 添加首页
+            if start_page > 1:
+                visible_pages.append({"type": "page", "page": 1})
+                if start_page > 2:
+                    visible_pages.append({"type": "ellipsis"})
+
+            # 添加中间页码
+            for page in range(start_page, end_page + 1):
+                visible_pages.append({"type": "page", "page": page})
+
+            # 添加末页
+            if end_page < self._total_pages:
+                if end_page < self._total_pages - 1:
+                    visible_pages.append({"type": "ellipsis"})
+                visible_pages.append({"type": "page", "page": self._total_pages})
+
+            return visible_pages
+
+        except Exception as e:
+            self._logger.error(f"计算可见页码失败: {e}")
+            return []
+
+    def _update_nav_buttons(self) -> None:
+        """更新导航按钮状态"""
+        try:
+            # 首页和上一页按钮
+            if self._first_button:
+                self._first_button.setEnabled(self._current_page > 1)
+
+            if self._prev_button:
+                self._prev_button.setEnabled(self._current_page > 1)
+
+            # 下一页和末页按钮
+            if self._next_button:
+                self._next_button.setEnabled(self._current_page < self._total_pages)
+
+            if self._last_button:
+                self._last_button.setEnabled(self._current_page < self._total_pages)
+
+        except Exception as e:
+            self._logger.error(f"更新导航按钮状态失败: {e}")
+
+    def _update_page_jumper(self) -> None:
+        """更新页面跳转器"""
+        if not self._page_jumper:
+            return
+
+        try:
+            self._page_jumper.setMaximum(max(1, self._total_pages))
+            self._page_jumper.setValue(self._current_page)
+
+        except Exception as e:
+            self._logger.error(f"更新页面跳转器失败: {e}")
+
+    def set_total_items(self, total_items: int) -> None:
+        """
+        设置总项目数
+
+        Args:
+            total_items: 总项目数
+        """
+        try:
+            self._total_items = max(0, total_items)
+            self._update_display()
+
+        except Exception as e:
+            self._logger.error(f"设置总项目数失败: {e}")
+
+    def set_page_size(self, page_size: int) -> None:
+        """
+        设置页面大小
+
+        Args:
+            page_size: 页面大小
+        """
+        try:
+            if page_size <= 0:
+                return
+
+            self._page_size = page_size
+
+            # 更新页面大小选择器
+            if self._page_size_combo:
+                index = self._page_size_combo.findData(page_size)
+                if index >= 0:
+                    self._page_size_combo.setCurrentIndex(index)
+
+            # 重新计算当前页面
+            old_start_item = (self._current_page - 1) * self._page_size + 1
+            self._current_page = max(1, math.ceil(old_start_item / page_size))
+
+            self._update_display()
+
+        except Exception as e:
+            self._logger.error(f"设置页面大小失败: {e}")
+
+    def go_to_page(self, page: int) -> None:
+        """
+        跳转到指定页面
+
+        Args:
+            page: 目标页面
+        """
+        try:
+            if page < 1 or page > self._total_pages:
+                return
+
+            if page != self._current_page:
+                self._current_page = page
+                self._update_display()
+
+                # 发送页面变化信号
+                self.page_changed.emit(self._current_page)
+
+                self._logger.debug(f"跳转到页面: {page}")
+
+        except Exception as e:
+            self._logger.error(f"跳转页面失败: {e}")
+
+    def next_page(self) -> None:
+        """下一页"""
+        if self._current_page < self._total_pages:
+            self.go_to_page(self._current_page + 1)
+
+    def previous_page(self) -> None:
+        """上一页"""
+        if self._current_page > 1:
+            self.go_to_page(self._current_page - 1)
+
+    def _on_page_size_changed(self) -> None:
+        """处理页面大小变化"""
+        try:
+            if not self._page_size_combo:
+                return
+
+            new_page_size = self._page_size_combo.currentData()
+            if new_page_size and new_page_size != self._page_size:
+                self.set_page_size(new_page_size)
+
+                # 发送页面大小变化信号
+                self.page_size_changed.emit(new_page_size)
+
+                self._logger.debug(f"页面大小变化: {new_page_size}")
+
+        except Exception as e:
+            self._logger.error(f"处理页面大小变化失败: {e}")
+
+    # 属性访问器
+    @property
+    def current_page(self) -> int:
+        """获取当前页码"""
+        return self._current_page
+
+    @property
+    def page_size(self) -> int:
+        """获取页面大小"""
+        return self._page_size
+
+    @property
+    def total_pages(self) -> int:
+        """获取总页数"""
+        return self._total_pages
+
+    @property
+    def total_items(self) -> int:
+        """获取总项目数"""
+        return self._total_items
+
+    def get_page_info(self) -> dict[str, int]:
+        """
+        获取分页信息
+
+        Returns:
+            Dict[str, int]: 分页信息
+        """
+        return {
+            "current_page": self._current_page,
+            "page_size": self._page_size,
+            "total_pages": self._total_pages,
+            "total_items": self._total_items,
+            "start_item": (self._current_page - 1) * self._page_size + 1,
+            "end_item": min(self._current_page * self._page_size, self._total_items),
+        }
+
+    def __str__(self) -> str:
+        """返回分页组件的字符串表示"""
+        return f"PaginationWidget(page={self._current_page}/{self._total_pages}, size={self._page_size}, total={self._total_items})"

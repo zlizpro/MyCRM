@@ -1,0 +1,2 @@
+[console_scripts]
+minicrm = minicrm.main:main

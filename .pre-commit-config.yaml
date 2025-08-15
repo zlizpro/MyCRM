@@ -1,0 +1,77 @@
+# MiniCRM Pre-commit配置
+# 确保所有提交的代码都符合项目质量标准
+
+repos:
+  # Ruff - 超快速的Python linter和formatter
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.1.15 # 更新到较新版本
+    hooks:
+      # 运行ruff检查
+      - id: ruff
+        name: Ruff代码质量检查
+        args: [--fix, --exit-non-zero-on-fix, --config=ruff.toml]
+        files: ^src/.*\.py$
+        exclude: ^src/.*/__pycache__/.*$
+      # 运行ruff格式化
+      - id: ruff-format
+        name: Ruff代码格式化
+        args: [--config=ruff.toml]
+        files: ^src/.*\.py$
+        exclude: ^src/.*/__pycache__/.*$
+
+  # MyPy - 静态类型检查
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.8.0 # 更新到较新版本
+    hooks:
+      - id: mypy
+        name: MyPy类型检查
+        files: ^src/.*\.py$
+        exclude: ^src/.*/__pycache__/.*$
+        additional_dependencies:
+          [PySide6, types-requests, types-setuptools, types-python-dateutil]
+        args:
+          [--config-file=mypy.ini, --show-error-codes, --show-column-numbers]
+
+  # 文件大小检查
+  - repo: local
+    hooks:
+      - id: file-size-check
+        name: 检查文件大小限制
+        entry: python scripts/check_file_sizes.py
+        language: system
+        files: ^src/.*\.py$
+        pass_filenames: false
+
+  # Transfunctions使用检查
+  - repo: local
+    hooks:
+      - id: transfunctions-check
+        name: 检查transfunctions使用
+        entry: python scripts/check_transfunctions_usage.py
+        language: system
+        files: ^src/.*\.py$
+        pass_filenames: false
+
+  # 通用检查
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      # 检查文件末尾换行
+      - id: end-of-file-fixer
+        files: ^src/
+      # 检查行尾空格
+      - id: trailing-whitespace
+        files: ^src/
+      # 检查YAML语法
+      - id: check-yaml
+      # 检查JSON语法
+      - id: check-json
+      # 检查合并冲突标记
+      - id: check-merge-conflict
+      # 检查大文件
+      - id: check-added-large-files
+        args: ["--maxkb=500"]
+
+# 全局配置
+default_stages: [pre-commit]
+fail_fast: false # 运行所有检查，不在第一个失败时停止

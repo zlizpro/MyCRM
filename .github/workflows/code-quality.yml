@@ -1,0 +1,190 @@
+# MiniCRM 代码质量检查工作流
+# 在每次推送和PR时运行代码质量检查
+
+name: 代码质量检查
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - "src/**"
+      - "tests/**"
+      - "scripts/**"
+      - "*.py"
+      - "*.toml"
+      - "*.ini"
+      - ".pre-commit-config.yaml"
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - "src/**"
+      - "tests/**"
+      - "scripts/**"
+      - "*.py"
+      - "*.toml"
+      - "*.ini"
+      - ".pre-commit-config.yaml"
+
+jobs:
+  code-quality:
+    name: 代码质量检查
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        python-version: ["3.11"]
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 设置Python环境
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: 安装uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "latest"
+
+      - name: 创建虚拟环境并安装依赖
+        run: |
+          uv venv
+          uv pip install -e .
+          uv pip install -r requirements-dev.txt || echo "requirements-dev.txt not found, installing dev dependencies via uv"
+          uv add --dev ruff mypy pre-commit
+
+      - name: 运行Ruff代码检查
+        run: |
+          uv run ruff check --config ruff.toml src/ --output-format=github
+
+      - name: 运行Ruff代码格式化检查
+        run: |
+          uv run ruff format --config ruff.toml src/ --check --diff
+
+      - name: 运行MyPy类型检查
+        run: |
+          uv run mypy --config-file=mypy.ini src/minicrm/ --show-error-codes
+
+      - name: 运行文件大小检查
+        run: |
+          python scripts/check_file_sizes.py
+
+      - name: 运行transfunctions使用检查
+        run: |
+          python scripts/check_transfunctions_usage.py
+
+      - name: 运行架构依赖检查
+        run: |
+          python scripts/modularity_check.py --all || echo "架构检查完成"
+
+      - name: 运行代码覆盖率检查
+        run: |
+          uv add --dev pytest pytest-cov coverage
+          python scripts/check_coverage.py --min-coverage 70.0
+
+      - name: 生成质量报告
+        if: always()
+        run: |
+          echo "## 代码质量检查报告" > quality-report.md
+          echo "### 检查时间: $(date)" >> quality-report.md
+          echo "### Python版本: ${{ matrix.python-version }}" >> quality-report.md
+          echo "" >> quality-report.md
+
+          echo "### Ruff检查结果" >> quality-report.md
+          uv run ruff check --config ruff.toml src/ --statistics >> quality-report.md || echo "Ruff检查发现问题" >> quality-report.md
+          echo "" >> quality-report.md
+
+          echo "### 文件大小检查结果" >> quality-report.md
+          python scripts/check_file_sizes.py >> quality-report.md || echo "文件大小检查发现问题" >> quality-report.md
+          echo "" >> quality-report.md
+
+          echo "### Transfunctions使用检查结果" >> quality-report.md
+          python scripts/check_transfunctions_usage.py >> quality-report.md || echo "Transfunctions使用检查发现问题" >> quality-report.md
+          echo "" >> quality-report.md
+
+          echo "### 代码覆盖率检查结果" >> quality-report.md
+          if [ -f coverage-summary.md ]; then
+            cat coverage-summary.md >> quality-report.md
+          else
+            echo "覆盖率检查未运行或失败" >> quality-report.md
+          fi
+
+      - name: 上传质量报告
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: quality-report-${{ matrix.python-version }}
+          path: |
+            quality-report.md
+            coverage-summary.md
+            htmlcov/
+            coverage.xml
+            coverage.json
+
+      - name: 评论PR（如果是PR）
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            try {
+              const report = fs.readFileSync('quality-report.md', 'utf8');
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: `## 🔍 代码质量检查报告\n\n${report}`
+              });
+            } catch (error) {
+              console.log('无法读取质量报告文件:', error);
+            }
+
+  security-scan:
+    name: 安全扫描
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 运行Bandit安全扫描
+        uses: tj-actions/bandit@v5.1
+        with:
+          options: "-r src/ -f json -o bandit-report.json"
+
+      - name: 上传安全报告
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-report
+          path: bandit-report.json
+
+  dependency-check:
+    name: 依赖安全检查
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 设置Python环境
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: 安装uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: 运行依赖安全检查
+        run: |
+          uv add --dev safety
+          uv run safety check --json --output safety-report.json || echo "依赖安全检查完成"
+
+      - name: 上传依赖安全报告
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-security-report
+          path: safety-report.json

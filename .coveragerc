@@ -1,0 +1,97 @@
+# MiniCRM 代码覆盖率配置文件
+
+[run]
+# 指定要测量覆盖率的源代码目录
+source = src/minicrm, src/transfunctions
+
+# 排除不需要测量覆盖率的文件
+omit =
+    # 测试文件本身
+    tests/*
+
+    # 示例和脚本文件
+    examples/*
+    scripts/*
+
+    # 配置文件
+    src/minicrm/config/*
+
+    # 主入口文件（通常很简单）
+    src/minicrm/main.py
+    src/minicrm/__main__.py
+
+    # 初始化文件（通常只有导入）
+    */__init__.py
+
+    # 临时和缓存文件
+    */.mypy_cache/*
+    */__pycache__/*
+    */.pytest_cache/*
+
+    # 虚拟环境
+    .venv/*
+    venv/*
+
+# 启用分支覆盖率测量
+branch = True
+
+# 并行运行支持
+parallel = True
+
+# 数据文件位置
+data_file = .coverage
+
+[report]
+# 报告格式设置
+precision = 2
+show_missing = True
+skip_covered = False
+skip_empty = False
+
+# 排除报告中的文件（与omit类似，但仅影响报告）
+exclude_lines =
+    # 标准排除模式
+    pragma: no cover
+
+    # 不测试调试代码
+    def __repr__
+    if self\.debug
+
+    # 不测试抽象方法
+    raise AssertionError
+    raise NotImplementedError
+
+    # 不测试防御性断言
+    raise AssertionError
+
+    # 不测试类型检查代码
+    if TYPE_CHECKING:
+    if typing.TYPE_CHECKING:
+
+    # 不测试主程序入口
+    if __name__ == .__main__.:
+
+    # 不测试异常处理中的日志记录
+    except.*:
+        .*\.log
+        .*\.error
+        .*\.warning
+        .*\.debug
+        .*\.info
+
+# 覆盖率阈值设置
+fail_under = 80
+
+[html]
+# HTML报告设置
+directory = htmlcov
+title = MiniCRM 代码覆盖率报告
+
+[xml]
+# XML报告设置（用于CI/CD）
+output = coverage.xml
+
+[json]
+# JSON报告设置
+output = coverage.json
+pretty_print = True

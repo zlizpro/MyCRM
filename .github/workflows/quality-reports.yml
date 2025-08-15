@@ -1,0 +1,278 @@
+# MiniCRM 定期质量报告工作流
+# 定期生成和发布代码质量报告
+
+name: 定期质量报告
+
+on:
+  schedule:
+    # 每天早上8点生成每日报告
+    - cron: "0 8 * * *"
+    # 每周一早上9点生成每周报告
+    - cron: "0 9 * * 1"
+    # 每月1号早上10点生成每月报告
+    - cron: "0 10 1 * *"
+
+  # 允许手动触发
+  workflow_dispatch:
+    inputs:
+      report_type:
+        description: "报告类型"
+        required: true
+        default: "daily"
+        type: choice
+        options:
+          - daily
+          - weekly
+          - monthly
+          - all
+
+jobs:
+  generate-reports:
+    name: 生成质量报告
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # 获取完整历史，用于趋势分析
+
+      - name: 设置Python环境
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: 安装uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: 安装依赖
+        run: |
+          uv venv
+          uv pip install -e .
+          uv add --dev ruff mypy pytest pytest-cov coverage
+
+      - name: 收集质量指标
+        run: |
+          python scripts/quality_monitor.py
+
+      - name: 确定报告类型
+        id: report-type
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "type=${{ github.event.inputs.report_type }}" >> $GITHUB_OUTPUT
+          elif [ "$(date +%u)" = "1" ] && [ "$(date +%H)" = "09" ]; then
+            echo "type=weekly" >> $GITHUB_OUTPUT
+          elif [ "$(date +%d)" = "01" ] && [ "$(date +%H)" = "10" ]; then
+            echo "type=monthly" >> $GITHUB_OUTPUT
+          else
+            echo "type=daily" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 生成质量报告
+        run: |
+          python scripts/quality_reporter.py --type ${{ steps.report-type.outputs.type }}
+
+      - name: 上传报告文件
+        uses: actions/upload-artifact@v4
+        with:
+          name: quality-reports-${{ steps.report-type.outputs.type }}-${{ github.run_number }}
+          path: |
+            reports/
+            quality-trend-report.md
+            quality_metrics.json
+
+      - name: 创建Issue（如果质量下降）
+        if: steps.report-type.outputs.type == 'daily'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+
+            // 读取质量指标
+            let shouldCreateIssue = false;
+            let issueBody = '## 🚨 代码质量预警\n\n';
+
+            try {
+              const metricsData = JSON.parse(fs.readFileSync('quality_metrics.json', 'utf8'));
+              const history = metricsData.history || [];
+
+              if (history.length >= 2) {
+                const current = history[history.length - 1];
+                const previous = history[history.length - 2];
+
+                // 检查质量下降
+                const currentScore = calculateQualityScore(current);
+                const previousScore = calculateQualityScore(previous);
+
+                if (currentScore < previousScore - 5) {
+                  shouldCreateIssue = true;
+                  issueBody += `质量评分下降: ${previousScore.toFixed(1)} → ${currentScore.toFixed(1)}\n\n`;
+                }
+
+                // 检查问题增加
+                if (current.ruff_issues > previous.ruff_issues + 10) {
+                  shouldCreateIssue = true;
+                  issueBody += `Ruff问题增加: ${previous.ruff_issues} → ${current.ruff_issues}\n`;
+                }
+
+                if (current.mypy_errors > previous.mypy_errors + 5) {
+                  shouldCreateIssue = true;
+                  issueBody += `MyPy错误增加: ${previous.mypy_errors} → ${current.mypy_errors}\n`;
+                }
+
+                if (current.coverage_percentage < previous.coverage_percentage - 2) {
+                  shouldCreateIssue = true;
+                  issueBody += `代码覆盖率下降: ${previous.coverage_percentage.toFixed(1)}% → ${current.coverage_percentage.toFixed(1)}%\n`;
+                }
+              }
+            } catch (error) {
+              console.log('读取质量指标失败:', error);
+            }
+
+            if (shouldCreateIssue) {
+              issueBody += '\n请查看最新的质量报告并采取改进措施。\n\n';
+              issueBody += `报告链接: https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: `代码质量预警 - ${new Date().toISOString().split('T')[0]}`,
+                body: issueBody,
+                labels: ['quality', 'alert']
+              });
+            }
+
+            function calculateQualityScore(metrics) {
+              let score = 100;
+              score -= Math.min(metrics.ruff_issues * 0.5, 20);
+              score -= Math.min(metrics.mypy_errors * 1.0, 25);
+              score -= Math.min(metrics.file_size_violations * 2.0, 15);
+              score -= Math.min(metrics.transfunctions_violations * 1.5, 10);
+
+              const coverage = metrics.coverage_percentage || 0;
+              if (coverage >= 90) score += 10;
+              else if (coverage >= 80) score += 5;
+              else if (coverage < 60) score -= 10;
+
+              return Math.max(0, Math.min(100, score));
+            }
+
+  publish-reports:
+    name: 发布质量报告
+    needs: generate-reports
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 下载报告文件
+        uses: actions/download-artifact@v4
+        with:
+          pattern: quality-reports-*
+          merge-multiple: true
+
+      - name: 设置Git配置
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+      - name: 提交报告到仓库
+        run: |
+          # 创建reports分支（如果不存在）
+          git checkout -B reports
+
+          # 复制报告文件
+          mkdir -p docs/quality-reports
+          cp -r reports/* docs/quality-reports/ 2>/dev/null || true
+          cp quality-trend-report.md docs/quality-reports/ 2>/dev/null || true
+
+          # 更新README
+          echo "# MiniCRM 质量报告" > docs/quality-reports/README.md
+          echo "" >> docs/quality-reports/README.md
+          echo "## 最新报告" >> docs/quality-reports/README.md
+          echo "" >> docs/quality-reports/README.md
+
+          # 列出所有报告文件
+          find docs/quality-reports -name "*.md" -not -name "README.md" | sort -r | head -10 | while read file; do
+            filename=$(basename "$file")
+            echo "- [$filename]($filename)" >> docs/quality-reports/README.md
+          done
+
+          # 提交更改
+          git add docs/quality-reports/
+          if git diff --staged --quiet; then
+            echo "没有新的报告需要提交"
+          else
+            git commit -m "更新质量报告 - $(date '+%Y-%m-%d %H:%M:%S')"
+            git push origin reports --force
+          fi
+
+  notify-team:
+    name: 通知团队
+    needs: [generate-reports, publish-reports]
+    runs-on: ubuntu-latest
+    if: always() && (needs.generate-reports.result == 'success' || needs.generate-reports.result == 'failure')
+
+    steps:
+      - name: 发送Slack通知
+        if: env.SLACK_WEBHOOK_URL != ''
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const webhook = process.env.SLACK_WEBHOOK_URL;
+            if (!webhook) return;
+
+            const success = '${{ needs.generate-reports.result }}' === 'success';
+            const reportType = '${{ steps.report-type.outputs.type }}' || 'daily';
+
+            const payload = {
+              channel: '#code-quality',
+              username: 'MiniCRM Quality Bot',
+              icon_emoji: success ? ':chart_with_upwards_trend:' : ':warning:',
+              text: success
+                ? `✅ ${reportType}质量报告已生成`
+                : `❌ ${reportType}质量报告生成失败`,
+              attachments: [{
+                color: success ? 'good' : 'danger',
+                fields: [
+                  {
+                    title: '报告类型',
+                    value: reportType,
+                    short: true
+                  },
+                  {
+                    title: '时间',
+                    value: new Date().toLocaleString('zh-CN'),
+                    short: true
+                  },
+                  {
+                    title: '查看详情',
+                    value: `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+                    short: false
+                  }
+                ]
+              }]
+            };
+
+            await fetch(webhook, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+            });
+
+      - name: 发送邮件通知
+        if: env.SMTP_SERVER != ''
+        env:
+          SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
+          SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          NOTIFICATION_EMAIL: ${{ secrets.NOTIFICATION_EMAIL }}
+        run: |
+          # 这里可以添加邮件发送逻辑
+          echo "邮件通知功能需要配置SMTP设置"

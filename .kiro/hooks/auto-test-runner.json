@@ -1,0 +1,15 @@
+{
+    "name": "自动测试运行Hook",
+    "description": "当保存测试文件或被测试的源文件时自动运行相关的单元测试，确保代码更改不会破坏现有功能",
+    "triggers": [
+        {
+            "type": "file_save",
+            "patterns": [
+                "test_*.py",
+                "*_test.py",
+                "minicrm/**/*.py"
+            ]
+        }
+    ],
+    "request": "# 自动测试运行任务\n\n## 任务描述\n根据保存的文件自动运行相关的单元测试，分析测试结果并提供详细报告。\n\n## 保存的文件\n文件路径: {{file_path}}\n\n## 执行任务\n\n### 1. 识别相关测试\n- 如果保存的是测试文件（test_*.py 或 *_test.py），直接运行该测试文件\n- 如果保存的是源文件，查找并运行对应的测试文件：\n  - 对于 `minicrm/services/customer_service.py`，查找 `tests/test_services/test_customer_service.py`\n  - 对于 `minicrm/data/dao/customer_dao.py`，查找 `tests/test_data/test_customer_dao.py`\n  - 对于 `minicrm/ui/components/customer_panel.py`，查找相关UI测试文件\n\n### 2. 运行测试\n使用pytest运行相关测试：\n```bash\n# 运行单个测试文件\npytest {test_file_path} -v\n\n# 如果找不到对应测试文件，运行所有相关测试\npytest tests/ -k \"{module_name}\" -v\n\n# 运行所有测试（作为备选方案）\npytest tests/ -v\n```\n\n### 3. 分析测试结果\n- 统计通过/失败的测试数量\n- 识别失败的具体测试用例\n- 记录测试执行时间\n- 分析测试覆盖率（如果可用）\n\n### 4. 生成报告\n请按以下格式提供测试结果摘要：\n\n```\n🧪 测试运行结果：\n✅ 通过: X个测试\n❌ 失败: X个测试\n⏱️ 执行时间: X.X秒\n\n失败的测试：\n1. test_function_name\n   错误：具体错误信息\n   建议：修复建议\n\n2. test_another_function\n   错误：具体错误信息\n   建议：修复建议\n```\n\n### 5. 提供修复建议\n对于失败的测试，分析可能的原因并提供具体的修复建议：\n- 检查代码逻辑是否正确\n- 验证数据验证规则\n- 确认异常处理是否完整\n- 检查数据库操作是否正确\n\n## 注意事项\n- 优先运行与保存文件直接相关的测试\n- 如果测试运行时间过长，可以考虑只运行快速测试\n- 对于UI组件，重点关注业务逻辑测试\n- 确保测试环境配置正确（数据库连接、依赖项等）"
+}

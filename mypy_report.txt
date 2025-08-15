@@ -1,0 +1,733 @@
+src/minicrm/ui/components/__init__.py:36: error: Need type annotation for
+"__all__" (hint: "__all__: list[<type>] = ...")  [var-annotated]
+    __all__ = [
+    ^~~~~~~
+src/minicrm/ui/components/search_widget.py:215: error: "type[Qt]" has no
+attribute "CaseInsensitive"  [attr-defined]
+                self._completer.setCaseSensitivity(Qt.CaseInsensitive)
+                                                   ^~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/search_widget.py:216: error: "type[Qt]" has no
+attribute "MatchContains"  [attr-defined]
+                self._completer.setFilterMode(Qt.MatchContains)
+                                              ^~~~~~~~~~~~~~~~
+src/minicrm/ui/components/search_widget.py:238: error: "SearchWidget" has no
+attribute "_clear_search"; maybe "clear_search"?  [attr-defined]
+                self._clear_button.clicked.connect(self._clear_search)
+                                                   ^~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/search_widget.py:357: error: Incompatible types in
+assignment (expression has type "QDateEdit", variable has type "QComboBox") 
+[assignment]
+                    filter_widget = QDateEdit()
+                                    ^~~~~~~~~~~
+src/minicrm/ui/components/search_widget.py:358: error: "QComboBox" has no
+attribute "setCalendarPopup"  [attr-defined]
+                    filter_widget.setCalendarPopup(True)
+                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/search_widget.py:359: error: "QComboBox" has no
+attribute "setSpecialValueText"  [attr-defined]
+                    filter_widget.setSpecialValueText("选择日期")
+                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/search_widget.py:362: error: Incompatible types in
+assignment (expression has type "QSpinBox", variable has type "QComboBox") 
+[assignment]
+                    filter_widget = QSpinBox()
+                                    ^~~~~~~~~~
+src/minicrm/ui/components/search_widget.py:363: error: "QComboBox" has no
+attribute "setMinimum"  [attr-defined]
+                    filter_widget.setMinimum(config.get("min", 0))
+                    ^~~~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/search_widget.py:364: error: "QComboBox" has no
+attribute "setMaximum"  [attr-defined]
+                    filter_widget.setMaximum(config.get("max", 999999))
+                    ^~~~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/search_widget.py:365: error: "QComboBox" has no
+attribute "setSpecialValueText"  [attr-defined]
+                    filter_widget.setSpecialValueText("不限")
+                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/search_widget.py:368: error: Incompatible types in
+assignment (expression has type "QLineEdit", variable has type "QComboBox") 
+[assignment]
+                    filter_widget = QLineEdit()
+                                    ^~~~~~~~~~~
+src/minicrm/ui/components/search_widget.py:372: error: Incompatible types in
+assignment (expression has type "QCheckBox", variable has type "QComboBox") 
+[assignment]
+                    filter_widget = QCheckBox(config.get("text", ""))
+                                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/search_widget.py:404: error: Argument 1 to "setDate"
+of "QDateTimeEdit" has incompatible type "date"; expected "QDate"  [arg-type]
+                        widget.setDate(value.date())
+                                       ^~~~~~~~~~~~
+src/minicrm/ui/components/notification_widget.py:112: error: "type[QFrame]" has
+no attribute "Box"  [attr-defined]
+                self.setFrameStyle(QFrame.Box)
+                                   ^~~~~~~~~~
+src/minicrm/ui/components/notification_widget.py:308: error:
+"type[QEasingCurve]" has no attribute "InOutQuad"  [attr-defined]
+                self._fade_animation.setEasingCurve(QEasingCurve.InOutQuad...
+                                                    ^~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/notification_widget.py:415: error: "type[Qt]" has no
+attribute "FramelessWindowHint"  [attr-defined]
+                    Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt....
+                    ^~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/notification_widget.py:415: error: "type[Qt]" has no
+attribute "WindowStaysOnTopHint"  [attr-defined]
+                    Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt....
+                                             ^~~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/notification_widget.py:415: error: "type[Qt]" has no
+attribute "Tool"  [attr-defined]
+    ...            Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.Tool
+                                                                      ^~~~~~~
+src/minicrm/ui/components/notification_widget.py:417: error: "type[Qt]" has no
+attribute "WA_TranslucentBackground"  [attr-defined]
+                self.setAttribute(Qt.WA_TranslucentBackground)
+                                  ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/notification_widget.py:418: error: "type[Qt]" has no
+attribute "WA_ShowWithoutActivating"  [attr-defined]
+                self.setAttribute(Qt.WA_ShowWithoutActivating)
+                                  ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/notification_widget.py:433: note: "show_notification" of "NotificationManager" defined here
+src/minicrm/ui/components/notification_widget.py:515: error: "QObject" has no
+attribute "rect"  [attr-defined]
+                parent_rect = self.parent().rect()
+                              ^~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/notification_widget.py:614: error: Unexpected keyword
+argument "parent" for "show_notification" of "NotificationManager"  [call-arg]
+        return manager.show_notification(
+               ^
+src/minicrm/ui/components/navigation_panel.py:143: error: "type[QTreeWidget]"
+has no attribute "SingleSelection"  [attr-defined]
+            self._tree_widget.setSelectionMode(QTreeWidget.SingleSelection...
+                                               ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/navigation_panel.py:144: error: "type[QTreeWidget]"
+has no attribute "SelectRows"  [attr-defined]
+            self._tree_widget.setSelectionBehavior(QTreeWidget.SelectRows)
+                                                   ^~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/navigation_panel.py:346: error: "type[Qt]" has no
+attribute "UserRole"  [attr-defined]
+            tree_item.setData(0, Qt.UserRole, item_data.name)
+                                 ^~~~~~~~~~~
+src/minicrm/ui/components/navigation_panel.py:430: error: "type[Qt]" has no
+attribute "UserRole"  [attr-defined]
+                item_name = item.data(0, Qt.UserRole)
+                                         ^~~~~~~~~~~
+src/minicrm/ui/components/navigation_panel.py:494: error: "type[Qt]" has no
+attribute "UserRole"  [attr-defined]
+                    return current_item.data(0, Qt.UserRole)
+                                                ^~~~~~~~~~~
+src/minicrm/ui/components/metric_card.py:98: error: "type[QFrame]" has no
+attribute "Box"  [attr-defined]
+                self.setFrameStyle(QFrame.Box)
+                                   ^~~~~~~~~~
+src/minicrm/ui/components/metric_card.py:99: error: "type[Qt]" has no attribute
+"PointingHandCursor"  [attr-defined]
+                self.setCursor(Qt.PointingHandCursor)
+                               ^~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/metric_card.py:173: error: "type[QEasingCurve]" has
+no attribute "OutCubic"  [attr-defined]
+                self._hover_animation.setEasingCurve(QEasingCurve.OutCubic...
+                                                     ^~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/metric_card.py:392: error: "type[Qt]" has no
+attribute "LeftButton"  [attr-defined]
+            if event.button() == Qt.LeftButton:
+                                 ^~~~~~~~~~~~~
+src/minicrm/ui/components/metric_card.py:419: error: "type[QPainter]" has no
+attribute "Antialiasing"  [attr-defined]
+                painter.setRenderHint(QPainter.Antialiasing)
+                                      ^~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/loading_widget.py:57: error: "type[Qt]" has no
+attribute "WA_TranslucentBackground"  [attr-defined]
+            self.setAttribute(Qt.WA_TranslucentBackground)
+                              ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/loading_widget.py:77: error: "type[QPainter]" has no
+attribute "Antialiasing"  [attr-defined]
+            painter.setRenderHint(QPainter.Antialiasing)
+                                  ^~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/loading_widget.py:82: error: "type[Qt]" has no
+attribute "RoundCap"  [attr-defined]
+            pen.setCapStyle(Qt.RoundCap)
+                            ^~~~~~~~~~~
+src/minicrm/ui/components/loading_widget.py:138: error: Name "QPushButton" is
+not defined  [name-defined]
+            self._cancel_button: QPushButton | None = None
+                                 ^
+src/minicrm/ui/components/loading_widget.py:212: error: "type[Qt]" has no
+attribute "FramelessWindowHint"  [attr-defined]
+                self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStay...
+                                    ^~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/loading_widget.py:212: error: "type[Qt]" has no
+attribute "WindowStaysOnTopHint"  [attr-defined]
+    ...    self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHi...
+                                                        ^~~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/loading_widget.py:213: error: "type[Qt]" has no
+attribute "WA_TranslucentBackground"  [attr-defined]
+                self.setAttribute(Qt.WA_TranslucentBackground)
+                                  ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/loading_widget.py:282: error: "QObject" has no
+attribute "rect"  [attr-defined]
+                    parent_rect = self.parent().rect()
+                                  ^~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/loading_widget.py:389: error: "type[QPainter]" has no
+attribute "Antialiasing"  [attr-defined]
+            painter.setRenderHint(QPainter.Antialiasing)
+                                  ^~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/loading_widget.py:411: error: "QRect" has no
+attribute "copy"  [attr-defined]
+                    highlight_rect = rect.copy()
+                                     ^~~~~~~~~
+src/minicrm/ui/components/form_validator.py:58: note: By default the bodies of untyped functions are not checked, consider using --check-untyped-defs  [annotation-unchecked]
+src/minicrm/ui/components/form_validator.py:59: note: By default the bodies of untyped functions are not checked, consider using --check-untyped-defs  [annotation-unchecked]
+src/minicrm/ui/components/form_validator.py:60: note: By default the bodies of untyped functions are not checked, consider using --check-untyped-defs  [annotation-unchecked]
+src/minicrm/ui/components/base_widget.py:23: error: Unsupported dynamic base
+class "type"  [misc]
+    class BaseWidgetMeta(type(QWidget), ABCMeta):
+                         ^~~~~~~~~~~~~
+src/minicrm/ui/components/base_panel.py:34: error: Unsupported dynamic base
+class "type"  [misc]
+    class BasePanelMeta(type(QFrame), ABCMeta):
+                        ^~~~~~~~~~~~
+src/minicrm/ui/components/base_panel.py:167: error: "type[QFrame]" has no
+attribute "StyledPanel"  [attr-defined]
+            self.setFrameStyle(QFrame.StyledPanel)
+                               ^~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/base_panel.py:170: error: "type[QSizePolicy]" has no
+attribute "Preferred"  [attr-defined]
+            self.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Minimum)
+                               ^~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/base_panel.py:170: error: "type[QSizePolicy]" has no
+attribute "Minimum"  [attr-defined]
+            self.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Minimum)
+                                                      ^~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/base_panel.py:213: error: Cannot assign to a method 
+[method-assign]
+                self._title_label.mousePressEvent = lambda e: self.title_c...
+                ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/base_panel.py:532: error: "type[QPropertyAnimation]"
+has no attribute "Stopped"  [attr-defined]
+    ...         and self._collapse_animation.state() != QPropertyAnimation.St...
+                                                        ^~~~~~~~~~~~~~~~~~~~~...
+src/minicrm/ui/components/base_dialog.py:31: error: Unsupported dynamic base
+class "type"  [misc]
+    class BaseDialogMeta(type(QDialog), ABCMeta):
+                         ^~~~~~~~~~~~~
+src/minicrm/ui/components/base_dialog.py:158: error: "type[Qt]" has no
+attribute "Dialog"  [attr-defined]
+            self.setWindowFlags(Qt.Dialog | Qt.WindowTitleHint | Qt.Window...
+                                ^~~~~~~~~
+src/minicrm/ui/components/base_dialog.py:158: error: "type[Qt]" has no
+attribute "WindowTitleHint"  [attr-defined]
+            self.setWindowFlags(Qt.Dialog | Qt.WindowTitleHint | Qt.Window...
+                                            ^~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/base_dialog.py:158: error: "type[Qt]" has no
+attribute "WindowCloseButtonHint"  [attr-defined]
+    ....setWindowFlags(Qt.Dialog | Qt.WindowTitleHint | Qt.WindowCloseButtonH...
+                                                        ^~~~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/base_dialog.py:196: error: "type[QDialogButtonBox]"
+has no attribute "Apply"  [attr-defined]
+            apply_button = self._button_box.button(QDialogButtonBox.Apply)
+                                                   ^~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/base_dialog.py:213: error: "type[QDialogButtonBox]"
+has no attribute "Ok"  [attr-defined]
+            return QDialogButtonBox.Ok | QDialogButtonBox.Cancel
+                   ^~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/base_dialog.py:213: error: "type[QDialogButtonBox]"
+has no attribute "Cancel"  [attr-defined]
+            return QDialogButtonBox.Ok | QDialogButtonBox.Cancel
+                                         ^~~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/base_dialog.py:218: error: "type[QKeySequence]" has
+no attribute "Cancel"  [attr-defined]
+            esc_shortcut = QShortcut(QKeySequence.Cancel, self)
+                                     ^~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/base_dialog.py:223: error: "type[QDialogButtonBox]"
+has no attribute "Ok"  [attr-defined]
+            ok_button = self._button_box.button(QDialogButtonBox.Ok)
+                                                ^~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/base_dialog.py:225: error: "type[QKeySequence]" has
+no attribute "InsertParagraphSeparator"  [attr-defined]
+                enter_shortcut = QShortcut(QKeySequence.InsertParagraphSep...
+                                           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~...
+src/minicrm/ui/components/base_dialog.py:307: error: "QObject" has no attribute
+"geometry"  [attr-defined]
+                parent_geometry = self.parent().geometry()
+                                  ^~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/search_bar_old.py:70: error: Incompatible types in
+assignment (expression has type "SearchBarConfig", variable has type
+"dict[Any, Any]")  [assignment]
+            self._config = config or SearchBarConfig()
+                           ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/search_bar_old.py:86: error: Argument 1 to
+"SearchHistoryManager" has incompatible type "dict[Any, Any]"; expected
+"SearchBarConfig"  [arg-type]
+    ...      self._history_manager = SearchHistoryManager(self._config, self)
+                                                          ^~~~~~~~~~~~
+src/minicrm/ui/components/search_bar_old.py:108: error: "dict[Any, Any]" has no
+attribute "show_advanced"  [attr-defined]
+                if self._config.show_advanced:
+                   ^~~~~~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/search_bar_old.py:124: error: "dict[Any, Any]" has no
+attribute "placeholder"  [attr-defined]
+            self._search_input.setPlaceholderText(self._config.placeholder...
+                                                  ^~~~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/search_bar_old.py:129: error: "dict[Any, Any]" has no
+attribute "search_button_text"  [attr-defined]
+            self._search_button = QPushButton(self._config.search_button_t...
+                                              ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/search_bar_old.py:135: error: "dict[Any, Any]" has no
+attribute "clear_button_text"  [attr-defined]
+            self._clear_button = QPushButton(self._config.clear_button_tex...
+                                             ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/search_bar_old.py:141: error: "dict[Any, Any]" has no
+attribute "show_advanced"  [attr-defined]
+            if self._config.show_advanced:
+               ^~~~~~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/search_bar_old.py:142: error: "dict[Any, Any]" has no
+attribute "advanced_button_text"  [attr-defined]
+                self._advanced_button = QPushButton(self._config.advanced_...
+                                                    ^~~~~~~~~~~~~~~~~~~~~~...
+src/minicrm/ui/components/search_bar_old.py:161: error: "dict[Any, Any]" has no
+attribute "advanced_title"  [attr-defined]
+            title_label = QLabel(self._config.advanced_title)
+                                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/search_bar_old.py:176: error: "dict[Any, Any]" has no
+attribute "apply_button_text"  [attr-defined]
+            apply_btn = QPushButton(self._config.apply_button_text)
+                                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/search_bar_old.py:180: error: "dict[Any, Any]" has no
+attribute "reset_button_text"  [attr-defined]
+            reset_btn = QPushButton(self._config.reset_button_text)
+                                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/search_bar_old.py:192: error: "dict[Any, Any]" has no
+attribute "enable_suggestions"  [attr-defined]
+                if self._search_input and self._config.enable_suggestions:
+                                          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/search_bar_old.py:204: error: "dict[Any, Any]" has no
+attribute "enable_real_time"  [attr-defined]
+                if self._config.enable_real_time:
+                   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/search_bar_old.py:225: error: Name "FilterConfig" is
+not defined  [name-defined]
+        def add_filter(self, filter_config: FilterConfig) -> None:
+                                            ^
+src/minicrm/ui/components/search_bar_old.py:298: error: "dict[Any, Any]" has no
+attribute "search_delay"  [attr-defined]
+            if self._config.search_delay > 0:
+               ^~~~~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/search_bar_old.py:299: error: "dict[Any, Any]" has no
+attribute "search_delay"  [attr-defined]
+                self._search_timer.start(self._config.search_delay)
+                                         ^~~~~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/search_bar_core.py:61: error: Incompatible types in
+assignment (expression has type "SearchBarConfig", variable has type
+"dict[Any, Any]")  [assignment]
+            self._config = config or SearchBarConfig()
+                           ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/search_bar_core.py:74: error: Argument 1 to
+"SearchHistoryManager" has incompatible type "dict[Any, Any]"; expected
+"SearchBarConfig"  [arg-type]
+    ...      self._history_manager = SearchHistoryManager(self._config, self)
+                                                          ^~~~~~~~~~~~
+src/minicrm/ui/components/search_bar_core.py:94: error: "dict[Any, Any]" has no
+attribute "show_advanced"  [attr-defined]
+            if self._config.show_advanced:
+               ^~~~~~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/search_bar_core.py:106: error: "dict[Any, Any]" has
+no attribute "placeholder"  [attr-defined]
+            self._search_input.setPlaceholderText(self._config.placeholder...
+                                                  ^~~~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/search_bar_core.py:118: error: "dict[Any, Any]" has
+no attribute "search_button_text"  [attr-defined]
+            search_btn = QPushButton(self._config.search_button_text)
+                                     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/search_bar_core.py:125: error: "dict[Any, Any]" has
+no attribute "clear_button_text"  [attr-defined]
+            clear_btn = QPushButton(self._config.clear_button_text)
+                                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/search_bar_core.py:132: error: "dict[Any, Any]" has
+no attribute "show_advanced"  [attr-defined]
+            if self._config.show_advanced:
+               ^~~~~~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/search_bar_core.py:133: error: "dict[Any, Any]" has
+no attribute "advanced_button_text"  [attr-defined]
+                advanced_btn = QPushButton(self._config.advanced_button_te...
+                                           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/search_bar_core.py:151: error: "dict[Any, Any]" has
+no attribute "advanced_title"  [attr-defined]
+            title_label = QLabel(self._config.advanced_title)
+                                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/search_bar_core.py:170: error: "dict[Any, Any]" has
+no attribute "apply_button_text"  [attr-defined]
+            apply_btn = QPushButton(self._config.apply_button_text)
+                                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/search_bar_core.py:174: error: "dict[Any, Any]" has
+no attribute "reset_button_text"  [attr-defined]
+            reset_btn = QPushButton(self._config.reset_button_text)
+                                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/search_bar_core.py:183: error: "dict[Any, Any]" has
+no attribute "enable_suggestions"  [attr-defined]
+            if self._search_input and self._config.enable_suggestions:
+                                      ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/search_bar_core.py:192: error: "dict[Any, Any]" has
+no attribute "enable_real_time"  [attr-defined]
+                if self._config.enable_real_time:
+                   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/search_bar_core.py:243: error: "dict[Any, Any]" has
+no attribute "search_delay"  [attr-defined]
+            if self._config.search_delay > 0:
+               ^~~~~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/search_bar_core.py:244: error: "dict[Any, Any]" has
+no attribute "search_delay"  [attr-defined]
+                self._search_timer.start(self._config.search_delay)
+                                         ^~~~~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/form_panel.py:190: error: Incompatible types in
+assignment (expression has type "QGridLayout", variable has type "QFormLayout") 
+[assignment]
+                layout = QGridLayout(parent_widget)
+                         ^~~~~~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/form_panel.py:195: error: Incompatible types in
+assignment (expression has type "QVBoxLayout", variable has type "QFormLayout") 
+[assignment]
+                layout = QVBoxLayout(parent_widget)
+                         ^~~~~~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/form_panel.py:197: error: Argument 1 to
+"_create_vertical_fields" of "FormPanel" has incompatible type "QFormLayout";
+expected "QVBoxLayout"  [arg-type]
+                self._create_vertical_fields(layout)
+                                             ^~~~~~
+src/minicrm/ui/components/form_panel.py:322: error: Incompatible types in
+assignment (expression has type "QSpinBox", variable has type "QLineEdit") 
+[assignment]
+                    field_widget = QSpinBox()
+                                   ^~~~~~~~~~
+src/minicrm/ui/components/form_panel.py:323: error: "QLineEdit" has no
+attribute "setMinimum"  [attr-defined]
+                    field_widget.setMinimum(field.get("min", 0))
+                    ^~~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/form_panel.py:324: error: "QLineEdit" has no
+attribute "setMaximum"  [attr-defined]
+                    field_widget.setMaximum(field.get("max", 999999))
+                    ^~~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/form_panel.py:327: error: Incompatible types in
+assignment (expression has type "QDoubleSpinBox", variable has type "QLineEdit")
+ [assignment]
+                    field_widget = QDoubleSpinBox()
+                                   ^~~~~~~~~~~~~~~~
+src/minicrm/ui/components/form_panel.py:328: error: "QLineEdit" has no
+attribute "setMinimum"  [attr-defined]
+                    field_widget.setMinimum(field.get("min", 0.0))
+                    ^~~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/form_panel.py:329: error: "QLineEdit" has no
+attribute "setMaximum"  [attr-defined]
+                    field_widget.setMaximum(field.get("max", 999999.99))
+                    ^~~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/form_panel.py:330: error: "QLineEdit" has no
+attribute "setDecimals"  [attr-defined]
+                    field_widget.setDecimals(field.get("decimals", 2))
+                    ^~~~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/form_panel.py:333: error: Incompatible types in
+assignment (expression has type "QTextEdit", variable has type "QLineEdit") 
+[assignment]
+                    field_widget = QTextEdit()
+                                   ^~~~~~~~~~~
+src/minicrm/ui/components/form_panel.py:338: error: Incompatible types in
+assignment (expression has type "QComboBox", variable has type "QLineEdit") 
+[assignment]
+                    field_widget = QComboBox()
+                                   ^~~~~~~~~~~
+src/minicrm/ui/components/form_panel.py:342: error: "QLineEdit" has no
+attribute "addItem"  [attr-defined]
+                            field_widget.addItem(option["label"], option["...
+                            ^~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/form_panel.py:344: error: "QLineEdit" has no
+attribute "addItem"  [attr-defined]
+                            field_widget.addItem(str(option), option)
+                            ^~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/form_panel.py:347: error: Incompatible types in
+assignment (expression has type "QWidget", variable has type "QLineEdit") 
+[assignment]
+                    field_widget = QWidget()
+                                   ^~~~~~~~~
+src/minicrm/ui/components/form_panel.py:367: error: Incompatible types in
+assignment (expression has type "QCheckBox", variable has type "QLineEdit") 
+[assignment]
+                    field_widget = QCheckBox(field.get("text", ""))
+                                   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/form_panel.py:370: error: Incompatible types in
+assignment (expression has type "QDateEdit", variable has type "QLineEdit") 
+[assignment]
+                    field_widget = QDateEdit()
+                                   ^~~~~~~~~~~
+src/minicrm/ui/components/form_panel.py:371: error: "QLineEdit" has no
+attribute "setDate"  [attr-defined]
+                    field_widget.setDate(QDate.currentDate())
+                    ^~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/form_panel.py:372: error: "QLineEdit" has no
+attribute "setCalendarPopup"  [attr-defined]
+                    field_widget.setCalendarPopup(True)
+                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/form_panel.py:375: error: Incompatible types in
+assignment (expression has type "QDateTimeEdit", variable has type "QLineEdit") 
+[assignment]
+                    field_widget = QDateTimeEdit()
+                                   ^~~~~~~~~~~~~~~
+src/minicrm/ui/components/form_panel.py:376: error: "QLineEdit" has no
+attribute "setDateTime"  [attr-defined]
+                    field_widget.setDateTime(QDateTime.currentDateTime())
+                    ^~~~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/form_panel.py:377: error: "QLineEdit" has no
+attribute "setCalendarPopup"  [attr-defined]
+                    field_widget.setCalendarPopup(True)
+                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/form_panel.py:601: error: No overload variant of
+"QDate" matches argument type "date"  [call-overload]
+                        widget.setDate(QDate(value))
+                                       ^~~~~~~~~~~~
+src/minicrm/ui/components/form_panel.py:601: note: Possible overload variants:
+src/minicrm/ui/components/form_panel.py:601: note:     def QDate(self) -> QDate
+src/minicrm/ui/components/form_panel.py:601: note:     def QDate(self, QDate, /) -> QDate
+src/minicrm/ui/components/form_panel.py:601: note:     def QDate(self, int, int, int, /) -> QDate
+src/minicrm/ui/components/form_panel.py:601: note:     def QDate(self, int, int, int, QCalendar, /) -> QDate
+src/minicrm/ui/components/form_panel.py:606: error: No overload variant of
+"QDateTime" matches argument type "datetime"  [call-overload]
+                        widget.setDateTime(QDateTime(value))
+                                           ^~~~~~~~~~~~~~~~
+src/minicrm/ui/components/form_panel.py:606: note: Possible overload variants:
+src/minicrm/ui/components/form_panel.py:606: note:     def QDateTime(self) -> QDateTime
+src/minicrm/ui/components/form_panel.py:606: note:     def QDateTime(self, QDate, QTime, TimeSpec, /, offsetSeconds: int | None = ...) -> QDateTime
+src/minicrm/ui/components/form_panel.py:606: note:     def QDateTime(self, QDate, QTime, /, resolve: TransitionResolution = ...) -> QDateTime
+src/minicrm/ui/components/form_panel.py:606: note:     def QDateTime(self, QDate, QTime, QTimeZone | Initialization, /, resolve: TransitionResolution = ...) -> QDateTime
+src/minicrm/ui/components/form_panel.py:606: note:     def QDateTime(self, QDateTime, /) -> QDateTime
+src/minicrm/ui/components/form_panel.py:606: note:     def QDateTime(self, int, int, int, int, int, int, /) -> QDateTime
+src/minicrm/ui/components/form_panel.py:606: note:     def QDateTime(self, int, int, int, int, int, int, int, /, spec: TimeSpec = ...) -> QDateTime
+src/minicrm/ui/components/form_panel.py:606: note:     def QDateTime(self, int, int, int, int, int, int, int, /, spec: int = ...) -> QDateTime
+src/minicrm/ui/components/form_data_binder.py:43: note: By default the bodies of untyped functions are not checked, consider using --check-untyped-defs  [annotation-unchecked]
+src/minicrm/ui/components/form_data_binder.py:44: note: By default the bodies of untyped functions are not checked, consider using --check-untyped-defs  [annotation-unchecked]
+src/minicrm/ui/components/form_data_binder.py:45: note: By default the bodies of untyped functions are not checked, consider using --check-untyped-defs  [annotation-unchecked]
+src/minicrm/ui/components/data_table.py:586: error: "type[Qt]" has no attribute
+"ItemIsEditable"  [attr-defined]
+    ...                      item.setFlags(item.flags() & ~Qt.ItemIsEditable)
+                                                           ^~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/data_table.py:590: error: "type[Qt]" has no attribute
+"AlignVCenter"  [attr-defined]
+    ...             "alignment", Qt.AlignmentFlag.AlignLeft | Qt.AlignVCenter
+                                                              ^~~~~~~~~~~~~~~
+src/minicrm/ui/components/data_table.py:801: error: "QObject" has no attribute
+"mapToGlobal"  [attr-defined]
+                menu.exec_(self.sender().mapToGlobal(self.sender().rect()....
+                           ^~~~~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/data_table.py:801: error: "QObject" has no attribute
+"rect"  [attr-defined]
+                menu.exec_(self.sender().mapToGlobal(self.sender().rect()....
+                                                     ^~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/chart_widget.py:182: error: Incompatible types in
+assignment (expression has type "Axes", variable has type "None")  [assignment]
+                self._axes = self._figure.add_subplot(111)
+                             ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/chart_widget.py:251: error: "None" has no attribute
+"clear"  [attr-defined]
+                self._axes.clear()
+                ^~~~~~~~~~~~~~~~
+src/minicrm/ui/components/chart_widget.py:254: error: "None" has no attribute
+"text"  [attr-defined]
+                    self._axes.text(
+                    ^~~~~~~~~~~~~~~
+src/minicrm/ui/components/chart_widget.py:260: error: "None" has no attribute
+"transAxes"  [attr-defined]
+                        transform=self._axes.transAxes,
+                                  ^~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/chart_widget.py:284: error: "None" has no attribute
+"set_title"  [attr-defined]
+                    self._axes.set_title(
+                    ^~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/chart_widget.py:303: error: "None" has no attribute
+"plot"  [attr-defined]
+                    self._axes.plot(
+                    ^~~~~~~~~~~~~~~
+src/minicrm/ui/components/chart_widget.py:312: error: "None" has no attribute
+"legend"  [attr-defined]
+                self._axes.legend()
+                ^~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/chart_widget.py:315: error: "None" has no attribute
+"plot"  [attr-defined]
+                self._axes.plot(
+                ^~~~~~~~~~~~~~~
+src/minicrm/ui/components/chart_widget.py:324: error: "None" has no attribute
+"grid"  [attr-defined]
+            self._axes.grid(True, alpha=0.3)
+            ^~~~~~~~~~~~~~~
+src/minicrm/ui/components/chart_widget.py:325: error: "None" has no attribute
+"set_xlabel"  [attr-defined]
+            self._axes.set_xlabel("时间")
+            ^~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/chart_widget.py:326: error: "None" has no attribute
+"set_ylabel"  [attr-defined]
+            self._axes.set_ylabel("数值")
+            ^~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/chart_widget.py:329: error: "None" has no attribute
+"get_xticklabels"  [attr-defined]
+            plt.setp(self._axes.get_xticklabels(), rotation=45, ha="right"...
+                     ^~~~~~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/chart_widget.py:341: error: "None" has no attribute
+"bar"  [attr-defined]
+                    self._axes.bar(
+                    ^~~~~~~~~~~~~~
+src/minicrm/ui/components/chart_widget.py:344: error: "None" has no attribute
+"legend"  [attr-defined]
+                self._axes.legend()
+                ^~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/chart_widget.py:347: error: "None" has no attribute
+"bar"  [attr-defined]
+                bars = self._axes.bar(
+                       ^~~~~~~~~~~~~~
+src/minicrm/ui/components/chart_widget.py:354: error: "None" has no attribute
+"text"  [attr-defined]
+                    self._axes.text(
+                    ^~~~~~~~~~~~~~~
+src/minicrm/ui/components/chart_widget.py:363: error: "None" has no attribute
+"set_xlabel"  [attr-defined]
+            self._axes.set_xlabel("类别")
+            ^~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/chart_widget.py:364: error: "None" has no attribute
+"set_ylabel"  [attr-defined]
+            self._axes.set_ylabel("数值")
+            ^~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/chart_widget.py:365: error: "None" has no attribute
+"set_xticks"  [attr-defined]
+            self._axes.set_xticks(x_pos)
+            ^~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/chart_widget.py:366: error: "None" has no attribute
+"set_xticklabels"  [attr-defined]
+            self._axes.set_xticklabels(self._labels)
+            ^~~~~~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/chart_widget.py:369: error: "None" has no attribute
+"get_xticklabels"  [attr-defined]
+            plt.setp(self._axes.get_xticklabels(), rotation=45, ha="right"...
+                     ^~~~~~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/chart_widget.py:374: error: Argument 1 to "sum" has
+incompatible type "list[float] | list[list[float]]"; expected "Iterable[bool]" 
+[arg-type]
+            total = sum(self._data)
+                        ^~~~~~~~~~
+src/minicrm/ui/components/chart_widget.py:375: error: Unsupported operand types
+for / ("list[float]" and "int")  [operator]
+            percentages = [value / total * 100 for value in self._data]
+                           ^
+src/minicrm/ui/components/chart_widget.py:375: note: Left operand is of type "float | list[float]"
+src/minicrm/ui/components/chart_widget.py:386: error: "None" has no attribute
+"pie"  [attr-defined]
+            wedges, texts, autotexts = self._axes.pie(
+                                       ^~~~~~~~~~~~~~
+src/minicrm/ui/components/chart_widget.py:396: error: "None" has no attribute
+"axis"  [attr-defined]
+            self._axes.axis("equal")
+            ^~~~~~~~~~~~~~~
+src/minicrm/ui/components/chart_widget.py:409: error: "None" has no attribute
+"bar"  [attr-defined]
+                self._axes.bar(
+                ^~~~~~~~~~~~~~
+src/minicrm/ui/components/chart_widget.py:414: error: "None" has no attribute
+"set_xlabel"  [attr-defined]
+            self._axes.set_xlabel("类别")
+            ^~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/chart_widget.py:415: error: "None" has no attribute
+"set_ylabel"  [attr-defined]
+            self._axes.set_ylabel("数值")
+            ^~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/chart_widget.py:416: error: "None" has no attribute
+"set_xticks"  [attr-defined]
+            self._axes.set_xticks(x_pos)
+            ^~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/chart_widget.py:417: error: "None" has no attribute
+"set_xticklabels"  [attr-defined]
+            self._axes.set_xticklabels(self._labels)
+            ^~~~~~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/chart_widget.py:418: error: "None" has no attribute
+"legend"  [attr-defined]
+            self._axes.legend()
+            ^~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/chart_widget.py:421: error: "None" has no attribute
+"get_xticklabels"  [attr-defined]
+            plt.setp(self._axes.get_xticklabels(), rotation=45, ha="right"...
+                     ^~~~~~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/chart_widget.py:429: error: "None" has no attribute
+"stackplot"  [attr-defined]
+                self._axes.stackplot(
+                ^~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/chart_widget.py:436: error: "None" has no attribute
+"legend"  [attr-defined]
+                self._axes.legend()
+                ^~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/chart_widget.py:439: error: "None" has no attribute
+"fill_between"  [attr-defined]
+                self._axes.fill_between(x_pos, self._data, color=self._col...
+                ^~~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/chart_widget.py:440: error: "None" has no attribute
+"plot"  [attr-defined]
+                self._axes.plot(x_pos, self._data, color=self._colors[0], ...
+                ^~~~~~~~~~~~~~~
+src/minicrm/ui/components/chart_widget.py:442: error: "None" has no attribute
+"set_xlabel"  [attr-defined]
+            self._axes.set_xlabel("时间")
+            ^~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/chart_widget.py:443: error: "None" has no attribute
+"set_ylabel"  [attr-defined]
+            self._axes.set_ylabel("数值")
+            ^~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/chart_widget.py:444: error: "None" has no attribute
+"set_xticks"  [attr-defined]
+            self._axes.set_xticks(x_pos)
+            ^~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/chart_widget.py:445: error: "None" has no attribute
+"set_xticklabels"  [attr-defined]
+            self._axes.set_xticklabels(self._labels)
+            ^~~~~~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/chart_widget.py:446: error: "None" has no attribute
+"grid"  [attr-defined]
+            self._axes.grid(True, alpha=0.3)
+            ^~~~~~~~~~~~~~~
+src/minicrm/ui/components/chart_widget.py:449: error: "None" has no attribute
+"get_xticklabels"  [attr-defined]
+            plt.setp(self._axes.get_xticklabels(), rotation=45, ha="right"...
+                     ^~~~~~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/chart_widget.py:465: error: Incompatible types in
+assignment (expression has type "list[float] | list[list[float]]", variable has
+type "list[float]")  [assignment]
+                            y_data = self._data
+                                     ^~~~~~~~~~
+src/minicrm/ui/components/chart_widget.py:505: error: "QObject" has no
+attribute "pos"  [attr-defined]
+                menu.exec_(self.mapToGlobal(self.sender().pos()))
+                                            ^~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/dashboard.py:348: error: Argument "title" to
+"MetricCard" has incompatible type "object"; expected "str"  [arg-type]
+                    title=config["title"],
+                          ^~~~~~~~~~~~~~~
+src/minicrm/ui/components/dashboard.py:349: error: Argument "icon" to
+"MetricCard" has incompatible type "object"; expected "str"  [arg-type]
+                    icon=config["icon"],
+                         ^~~~~~~~~~~~~~
+src/minicrm/ui/components/dashboard.py:350: error: Argument "color" to
+"MetricCard" has incompatible type "object"; expected "str"  [arg-type]
+                    color=config["color"],
+                          ^~~~~~~~~~~~~~~
+src/minicrm/ui/components/dashboard.py:351: error: Argument "value_format" to
+"MetricCard" has incompatible type "object"; expected "str"  [arg-type]
+                    value_format=config.get("format", "number"),
+                                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/dashboard.py:352: error: Argument "suffix" to
+"MetricCard" has incompatible type "object"; expected "str"  [arg-type]
+                    suffix=config.get("suffix", ""),
+                           ^~~~~~~~~~~~~~~~~~~~~~~~
+src/minicrm/ui/components/dashboard.py:361: error: Invalid index type "object"
+for "dict[str, MetricCard]"; expected type "str"  [index]
+                self._metric_cards[config["name"]] = card
+                                   ^~~~~~~~~~~~~~
+src/minicrm/ui/components/dashboard.py:364: error: No overload variant of
+"addWidget" of "QGridLayout" matches argument types "MetricCard", "object",
+"object"  [call-overload]
+                self._metrics_layout.addWidget(card, config["row"], config...
+                ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~...
+src/minicrm/ui/components/dashboard.py:364: note: Possible overload variants:
+src/minicrm/ui/components/dashboard.py:364: note:     def addWidget(self, QWidget, /) -> None
+src/minicrm/ui/components/dashboard.py:364: note:     def addWidget(self, QWidget, int, int, /, alignment: AlignmentFlag = ...) -> None
+src/minicrm/ui/components/dashboard.py:364: note:     def addWidget(self, QWidget, int, int, int, int, /, alignment: AlignmentFlag = ...) -> None
+Found 171 errors in 15 files (checked 29 source files)

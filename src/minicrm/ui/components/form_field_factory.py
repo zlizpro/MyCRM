@@ -1,0 +1,323 @@
+"""
+MiniCRM 表单字段工厂
+
+负责创建各种类型的表单字段组件，实现字段创建的统一管理。
+支持的字段类型：文本、密码、数字、浮点数、文本区域、下拉框、单选框、复选框、日期、日期时间等。
+"""
+
+import logging
+from datetime import datetime
+from enum import Enum
+from typing import Any
+
+from PySide6.QtCore import QDate, QDateTime, QTime
+from PySide6.QtWidgets import (
+    QButtonGroup,
+    QCheckBox,
+    QComboBox,
+    QDateEdit,
+    QDateTimeEdit,
+    QDoubleSpinBox,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QRadioButton,
+    QSpinBox,
+    QTextEdit,
+    QWidget,
+)
+
+
+class FieldType(Enum):
+    """字段类型枚举"""
+
+    TEXT = "text"
+    PASSWORD = "password"
+    NUMBER = "number"
+    FLOAT = "float"
+    TEXTAREA = "textarea"
+    COMBO = "combo"
+    RADIO = "radio"
+    CHECKBOX = "checkbox"
+    DATE = "date"
+    DATETIME = "datetime"
+
+
+class FormFieldFactory:
+    """
+    表单字段工厂类
+
+    负责根据字段配置创建相应的UI组件，支持多种字段类型和自定义配置。
+    """
+
+    def __init__(self):
+        """初始化字段工厂"""
+        self._logger = logging.getLogger(f"{__name__}.FormFieldFactory")
+
+    def create_field_widget(self, field: dict[str, Any]) -> tuple[QWidget, QLabel]:
+        """
+        创建字段组件
+
+        Args:
+            field: 字段配置字典
+                {
+                    'key': 'field_name',
+                    'label': '字段标签',
+                    'type': 'text|password|number|...',
+                    'required': True/False,
+                    'placeholder': '占位符',
+                    'options': [...],  # combo/radio类型使用
+                    'min': 0,  # number类型使用
+                    'max': 100,  # number类型使用
+                    'default': 默认值
+                }
+
+        Returns:
+            Tuple[QWidget, QLabel]: (字段组件, 标签组件)
+        """
+        try:
+            field_type = field.get("type", "text")
+            field_label = field.get("label", field.get("key", ""))
+            is_required = field.get("required", False)
+
+            # 创建标签
+            label_widget = self._create_label(field_label, is_required)
+
+            # 根据类型创建字段组件
+            field_widget: QWidget
+            if field_type == FieldType.TEXT.value:
+                field_widget = self._create_text_field(field)
+            elif field_type == FieldType.PASSWORD.value:
+                field_widget = self._create_password_field(field)
+            elif field_type == FieldType.NUMBER.value:
+                field_widget = self._create_number_field(field)
+            elif field_type == FieldType.FLOAT.value:
+                field_widget = self._create_float_field(field)
+            elif field_type == FieldType.TEXTAREA.value:
+                field_widget = self._create_textarea_field(field)
+            elif field_type == FieldType.COMBO.value:
+                field_widget = self._create_combo_field(field)
+            elif field_type == FieldType.RADIO.value:
+                field_widget = self._create_radio_field(field)
+            elif field_type == FieldType.CHECKBOX.value:
+                field_widget = self._create_checkbox_field(field)
+            elif field_type == FieldType.DATE.value:
+                field_widget = self._create_date_field(field)
+            elif field_type == FieldType.DATETIME.value:
+                field_widget = self._create_datetime_field(field)
+            else:
+                self._logger.warning(f"未知字段类型: {field_type}")
+                field_widget = self._create_text_field(field)
+
+            # 设置默认值
+            default_value = field.get("default")
+            if default_value is not None:
+                self._set_field_default_value(field_widget, field_type, default_value)
+
+            return field_widget, label_widget
+
+        except Exception as e:
+            self._logger.error(f"创建字段组件失败: {e}")
+            return None, None
+
+    def _create_label(self, text: str, is_required: bool = False) -> QLabel:
+        """
+        创建字段标签
+
+        Args:
+            text: 标签文本
+            is_required: 是否必填
+
+        Returns:
+            QLabel: 标签组件
+        """
+        label_text = f"{text}*" if is_required else text
+        label = QLabel(label_text)
+
+        if is_required:
+            label.setStyleSheet("color: #dc3545;")  # 必填字段用红色标记
+
+        return label
+
+    def _create_text_field(self, field: dict[str, Any]) -> QLineEdit:
+        """创建文本字段"""
+        field_widget = QLineEdit()
+
+        placeholder = field.get("placeholder", "")
+        if placeholder:
+            field_widget.setPlaceholderText(placeholder)
+
+        max_length = field.get("max_length")
+        if max_length:
+            field_widget.setMaxLength(max_length)
+
+        return field_widget
+
+    def _create_password_field(self, field: dict[str, Any]) -> QLineEdit:
+        """创建密码字段"""
+        field_widget = QLineEdit()
+        field_widget.setEchoMode(QLineEdit.EchoMode.Password)
+
+        placeholder = field.get("placeholder", "请输入密码")
+        field_widget.setPlaceholderText(placeholder)
+
+        return field_widget
+
+    def _create_number_field(self, field: dict[str, Any]) -> QSpinBox:
+        """创建数字字段"""
+        field_widget = QSpinBox()
+        field_widget.setMinimum(field.get("min", 0))
+        field_widget.setMaximum(field.get("max", 999999))
+
+        return field_widget
+
+    def _create_float_field(self, field: dict[str, Any]) -> QDoubleSpinBox:
+        """创建浮点数字段"""
+        field_widget = QDoubleSpinBox()
+        field_widget.setMinimum(field.get("min", 0.0))
+        field_widget.setMaximum(field.get("max", 999999.99))
+        field_widget.setDecimals(field.get("decimals", 2))
+
+        return field_widget
+
+    def _create_textarea_field(self, field: dict[str, Any]) -> QTextEdit:
+        """创建文本区域字段"""
+        field_widget = QTextEdit()
+
+        placeholder = field.get("placeholder", "")
+        if placeholder:
+            field_widget.setPlaceholderText(placeholder)
+
+        # 设置最大高度
+        max_height = field.get("max_height", 100)
+        field_widget.setMaximumHeight(max_height)
+
+        return field_widget
+
+    def _create_combo_field(self, field: dict[str, Any]) -> QComboBox:
+        """创建下拉框字段"""
+        field_widget = QComboBox()
+
+        options = field.get("options", [])
+        for option in options:
+            if isinstance(option, dict):
+                field_widget.addItem(option["label"], option["value"])
+            else:
+                field_widget.addItem(str(option), option)
+
+        return field_widget
+
+    def _create_radio_field(self, field: dict[str, Any]) -> QWidget:
+        """创建单选框字段"""
+        container = QWidget()
+        layout = QHBoxLayout(container)
+        layout.setContentsMargins(0, 0, 0, 0)
+
+        button_group = QButtonGroup(container)
+        options = field.get("options", [])
+
+        for i, option in enumerate(options):
+            if isinstance(option, dict):
+                radio_button = QRadioButton(option["label"])
+                radio_button.setProperty("value", option["value"])
+            else:
+                radio_button = QRadioButton(str(option))
+                radio_button.setProperty("value", option)
+
+            button_group.addButton(radio_button, i)
+            layout.addWidget(radio_button)
+
+        # 存储按钮组引用
+        container.setProperty("button_group", button_group)
+
+        return container
+
+    def _create_checkbox_field(self, field: dict[str, Any]) -> QCheckBox:
+        """创建复选框字段"""
+        checkbox_text = field.get("text", "")
+        field_widget = QCheckBox(checkbox_text)
+
+        return field_widget
+
+    def _create_date_field(self, field: dict[str, Any]) -> QDateEdit:
+        """创建日期字段"""
+        field_widget = QDateEdit()
+        field_widget.setDate(QDate.currentDate())
+        field_widget.setCalendarPopup(True)
+
+        return field_widget
+
+    def _create_datetime_field(self, field: dict[str, Any]) -> QDateTimeEdit:
+        """创建日期时间字段"""
+        field_widget = QDateTimeEdit()
+        field_widget.setDateTime(QDateTime.currentDateTime())
+        field_widget.setCalendarPopup(True)
+
+        return field_widget
+
+    def _set_field_default_value(
+        self, widget: QWidget, field_type: str, value: Any
+    ) -> None:
+        """
+        设置字段默认值
+
+        Args:
+            widget: 字段组件
+            field_type: 字段类型
+            value: 默认值
+        """
+        try:
+            if field_type == FieldType.TEXT.value and isinstance(widget, QLineEdit) or field_type == FieldType.PASSWORD.value and isinstance(
+                widget, QLineEdit
+            ):
+                widget.setText(str(value))
+            elif field_type == FieldType.NUMBER.value and isinstance(widget, QSpinBox):
+                widget.setValue(int(value))
+            elif field_type == FieldType.FLOAT.value and isinstance(
+                widget, QDoubleSpinBox
+            ):
+                widget.setValue(float(value))
+            elif field_type == FieldType.TEXTAREA.value and isinstance(
+                widget, QTextEdit
+            ):
+                widget.setPlainText(str(value))
+            elif field_type == FieldType.COMBO.value and isinstance(widget, QComboBox):
+                index = widget.findData(value)
+                if index >= 0:
+                    widget.setCurrentIndex(index)
+            elif field_type == FieldType.CHECKBOX.value and isinstance(
+                widget, QCheckBox
+            ):
+                widget.setChecked(bool(value))
+            elif field_type == FieldType.DATE.value and isinstance(widget, QDateEdit):
+                if isinstance(value, datetime):
+                    q_date = QDate(value.year, value.month, value.day)
+                    widget.setDate(q_date)
+            elif field_type == FieldType.DATETIME.value and isinstance(
+                widget, QDateTimeEdit
+            ) and isinstance(value, datetime):
+                q_datetime = QDateTime(
+                    QDate(value.year, value.month, value.day),
+                    QTime(value.hour, value.minute, value.second),
+                )
+                widget.setDateTime(q_datetime)
+
+        except Exception as e:
+            self._logger.error(f"设置字段默认值失败: {e}")
+
+    def create_error_label(self, field_key: str) -> QLabel:
+        """
+        创建错误标签
+
+        Args:
+            field_key: 字段键名
+
+        Returns:
+            QLabel: 错误标签组件
+        """
+        error_label = QLabel()
+        error_label.setObjectName(f"error_{field_key}")
+        error_label.setStyleSheet("color: #dc3545; font-size: 12px;")
+        error_label.hide()  # 默认隐藏
+
+        return error_label

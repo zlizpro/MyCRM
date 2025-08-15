@@ -1,0 +1,384 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "minicrm"
+version = "0.1.0"
+description = "一个基于Python和Qt的跨平台客户关系管理系统"
+authors = [{ name = "MiniCRM Team", email = "team@minicrm.com" }]
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.11"
+keywords = ["crm", "customer-management", "qt", "pyside6", "business"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Office/Business",
+    "Topic :: Database :: Front-Ends",
+]
+
+dependencies = [
+    # GUI框架 - 现代化Qt界面
+    "pyside6>=6.6.0",
+    # 数据库和ORM
+    "SQLAlchemy>=2.0.0",
+    "alembic>=1.13.0",   # 数据库迁移
+    # 文档处理
+    "python-docx>=1.1.0",
+    "docxtpl>=0.16.0",    # Word模板处理
+    "openpyxl>=3.1.0",
+    "reportlab>=4.0.0",
+    "Pillow>=10.0.0",
+    # 数据可视化
+    "matplotlib>=3.8.0",
+    "seaborn>=0.13.0",   # 增强图表样式
+    # 数据处理和验证
+    "pandas>=2.1.0",
+    "numpy>=1.24.0",
+    "pydantic>=2.5.0",
+    "python-dateutil>=2.8.0",
+    # 日志和监控
+    "loguru>=0.7.0",
+    "psutil>=5.9.0",
+    # 工具库
+    "click>=8.1.0",      # CLI工具
+    "rich>=13.0.0",      # 美化终端输出
+    "tqdm>=4.66.0",      # 进度条
+    "cachetools>=5.3.0", # 缓存工具
+    "PyYAML>=6.0.0",     # YAML配置文件支持
+    "mypy>=1.17.1",
+    "safety>=3.6.0",
+]
+
+# 开发依赖
+[project.optional-dependencies]
+dev = [
+    # 代码质量工具
+    "ruff>=0.1.0",
+    "mypy>=1.7.0",
+    "black>=23.0.0",
+    "isort>=5.12.0",
+
+    # 测试工具
+    "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+    "pytest-mock>=3.12.0",
+    "pytest-qt>=4.2.0",       # Qt应用测试
+    "pytest-asyncio>=0.21.0",
+
+    # 文档工具
+    "sphinx>=7.1.0",
+    "sphinx-rtd-theme>=1.3.0",
+    "myst-parser>=2.0.0",
+
+    # 性能分析
+    "memory-profiler>=0.61.0",
+    "line-profiler>=4.1.0",
+
+    # 打包工具
+    "pyinstaller>=6.0.0",
+    "cx-freeze>=6.15.0",
+
+    # 预提交钩子
+    "pre-commit>=3.5.0",
+]
+
+test = [
+    "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+    "pytest-mock>=3.12.0",
+    "pytest-qt>=4.2.0",
+    "pytest-asyncio>=0.21.0",
+]
+
+docs = ["sphinx>=7.1.0", "sphinx-rtd-theme>=1.3.0", "myst-parser>=2.0.0"]
+
+[project.scripts]
+minicrm = "minicrm.main:main"
+
+[project.urls]
+Homepage = "https://github.com/minicrm/minicrm"
+Documentation = "https://minicrm.readthedocs.io/"
+Repository = "https://github.com/minicrm/minicrm.git"
+"Bug Tracker" = "https://github.com/minicrm/minicrm/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["minicrm*", "transfunctions*"]
+
+[tool.setuptools.package-dir]
+"" = "src"
+
+# =============================================================================
+# 开发工具配置
+# =============================================================================
+
+# Ruff - 现代化Python代码检查和格式化工具
+[tool.ruff]
+target-version = "py311"
+line-length = 88
+src = ["src", "tests"]
+exclude = [
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".git-rewrite",
+    ".hg",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".pytype",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "node_modules",
+    "venv",
+]
+
+[tool.ruff.lint]
+# 启用的规则集
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+    "ARG", # flake8-unused-arguments
+    "SIM", # flake8-simplify
+    "TCH", # flake8-type-checking
+    "PTH", # flake8-use-pathlib
+    "ERA", # eradicate
+    "PL",  # pylint
+    "RUF", # ruff-specific rules
+]
+
+# 忽略的规则
+ignore = [
+    "E501",    # line-too-long (由black处理)
+    "B008",    # do-not-perform-function-calls-in-argument-defaults
+    "B904",    # raise-without-from-inside-except
+    "PLR0913", # too-many-arguments
+    "PLR0912", # too-many-branches
+    "PLR0915", # too-many-statements
+    "PLR2004", # magic-value-comparison
+    "SIM108",  # if-else-block-instead-of-if-exp
+    "ARG002",  # unused-method-argument
+    "TCH001",  # typing-only-first-party-import
+    "TCH002",  # typing-only-third-party-import
+    "TCH003",  # typing-only-standard-library-import
+]
+
+# 每个文件的特定忽略规则
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = [
+    "S101",    # assert
+    "ARG",     # unused arguments in tests
+    "FBT",     # boolean trap
+    "PLR2004", # magic values in tests
+    "S311",    # random
+]
+"scripts/**/*.py" = ["T20", "PLR0913", "S"]
+"examples/**/*.py" = ["T20", "PLR0913", "S"]
+"src/minicrm/main.py" = ["T20"] # 允许print语句在主程序中
+"src/minicrm/ui/responsive_layout.py" = ["N802"] # Qt方法使用驼峰命名法
+"src/minicrm/ui/**/*.py" = ["N802"] # Qt方法使用驼峰命名法
+
+[tool.ruff.lint.isort]
+known-first-party = ["minicrm", "transfunctions"]
+force-single-line = false
+lines-after-imports = 2
+no-lines-before = ["future", "standard-library"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-source-first-line = false
+line-ending = "auto"
+
+# MyPy - 静态类型检查
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+show_error_codes = true
+pretty = true
+color_output = true
+
+# 模块特定配置
+[[tool.mypy.overrides]]
+module = [
+    "PySide6.*",
+    "matplotlib.*",
+    "seaborn.*",
+    "reportlab.*",
+    "docxtpl.*",
+    "openpyxl.*",
+    "alembic.*",
+    "psutil.*",
+    "cachetools.*",
+    "memory_profiler.*",
+    "line_profiler.*",
+]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+
+# Black - 代码格式化工具
+[tool.black]
+line-length = 88
+target-version = ['py311']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+# isort - 导入排序
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+line_length = 88
+known_first_party = ["minicrm", "transfunctions"]
+known_third_party = [
+    "PySide6",
+    "matplotlib",
+    "pandas",
+    "numpy",
+    "pydantic",
+    "loguru",
+]
+sections = ["FUTURE", "STDLIB", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+ensure_newline_before_comments = true
+
+# Pytest - 测试配置
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = [
+    "-ra",
+    "--strict-markers",
+    "--strict-config",
+    "--cov=src/minicrm",
+    "--cov=src/transfunctions",
+    "--cov-report=term-missing",
+    "--cov-report=html",
+    "--cov-report=xml",
+]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+    "ui: marks tests as UI tests",
+    "performance: marks tests as performance tests",
+]
+filterwarnings = [
+    "error",
+    "ignore::UserWarning",
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning",
+]
+
+# Coverage.py - 代码覆盖率
+[tool.coverage.run]
+source = ["src"]
+branch = true
+omit = [
+    "*/tests/*",
+    "*/test_*.py",
+    "*/*_test.py",
+    "*/conftest.py",
+    "*/setup.py",
+    "*/venv/*",
+    "*/.venv/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
+show_missing = true
+precision = 2
+
+[tool.coverage.html]
+directory = "htmlcov"
+
+# Bandit - 安全检查
+[tool.bandit]
+exclude_dirs = ["tests", "scripts", "examples"]
+skips = ["B101", "B601"]                        # 跳过assert和shell注入检查（开发阶段）
+
+# Vulture - 死代码检测
+[tool.vulture]
+exclude = ["tests/", "scripts/", "examples/"]
+ignore_decorators = ["@app.route", "@require_*"]
+ignore_names = ["_*", "test_*"]
+make_whitelist = true
+min_confidence = 60
+paths = ["src"]
+sort_by_size = true
+verbose = false
+
+[dependency-groups]
+dev = [
+    "mypy>=1.17.1",
+    "pre-commit>=4.3.0",
+    "pytest>=8.4.1",
+    "pytest-cov>=6.2.1",
+    "pytest-mock>=3.14.1",
+    "ruff>=0.12.8",
+]
