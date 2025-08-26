@@ -308,15 +308,29 @@ user_data/
 *.xlsx~
 *.pdf~
 
-# ==================== 开发工具相关 ====================
+# ==================== 开发工具和IDE特定 ====================
 
-# IDE配置目录 - 应保留在本地
+# Kiro IDE 特定文件 - 应保留在本地
 .kiro/
+.kiro/settings/local_settings.json
+.kiro/settings/user_preferences.json
+.kiro/hooks/local_hooks/
+.kiro/specs/*/local_notes.md
+.kiro/hooks/__pycache__/
+.kiro/hooks/scripts/__pycache__/
+
+# 其他IDE配置目录 - 应保留在本地
 .codebuddy/
 .qoder/
 .trae/
-.mcp_cache/
 .rules/
+
+# MCP Cache - 应保留在本地
+.mcp_cache/
+
+# Visual Studio Code - 应保留在本地
+.vscode/
+*.code-workspace
 
 # Ruff cache
 .ruff_cache/
@@ -398,3 +412,63 @@ security_scan_results/
 
 # 依赖检查结果
 dependency_check_results/
+# ==================== 开发过程文档排除 ====================
+
+# 报告文件和重构计划 - 开发过程文档，不应提交
+*_report.txt
+*_report.md
+*_REPORT.md
+*_SUMMARY.md
+*_PLAN.md
+*_GUIDE.md
+*_CHECKLIST.md
+*_IMPLEMENTATION.md
+*performance_report*
+*executive_summary*
+*dependency_check*.txt
+*dependency_check*.md
+*validation_report*
+*refactor*_report*
+*quality_gate*
+*architecture_validation*
+*srp_validation*
+*transfunctions_usage_report*
+*accurate_dependency_report*
+*final_dependency_report*
+
+# 项目特定的临时报告文件
+ARCHITECTURE_REFACTORING_REPORT.md
+CODE_QUALITY_GATE_SUMMARY.md
+DATA_MODELS_IMPLEMENTATION_SUMMARY.md
+DATA_MODELS_SUMMARY.md
+DATABASE_REFACTORING_REPORT.md
+DEPENDENCY_CHECK_FINAL_REPORT.md
+DEPENDENCY_OPTIMIZATION.md
+GITHUB_COMMIT_SUCCESS.md
+MiniCRM_项目错误审查综合报告.md
+PROJECT_KANBAN.md
+QUOTE_SERVICE_REFACTORING_REPORT.md
+RESPONSIVE_LAYOUT_REFACTOR_PLAN.md
+SUPPLIER_SERVICE_REFACTOR_PLAN.md
+THEME_SYSTEM_IMPLEMENTATION.md
+TTK_组件错误修复任务列表.md
+
+# 临时测试文件
+test_*_integration.py
+test_*_implementation.py
+test_*_verification.py
+test_theme_*.py
+test_ttk_*.py
+verify_*.py
+simple_dialog_test.py
+
+# 临时脚本和工具
+dependency_checker.py
+fix_dependencies.sh
+optimize_dependencies.sh
+run_performance_tests.py
+
+# 临时配置文件
+window_config.json
+cloudbaserc.json
+.modularity-config.yaml
