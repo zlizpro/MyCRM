@@ -1,4 +1,4 @@
-"""MiniCRM 合同管理TTK面板
+"""MiniCRM 合同管理TTK面板 - 集成transfunctions
 
 基于tkinter/ttk实现的合同管理面板,替换Qt版本的ContractPanel.
 提供完整的合同管理功能,包括:
@@ -8,23 +8,41 @@
 - 附件管理和文档生成
 - 到期提醒和续约管理
 
+**重要更新**: 集成transfunctions可复用函数库
+- 使用validate_contract_data()验证合同数据
+- 使用generate_contract_document()生成合同文档
+- 使用format_date()格式化合同日期显示
+- 使用calculate_contract_status()计算合同状态
+
 设计原则:
 - 继承BaseWidget提供统一的组件基础
 - 使用DataTableTTK显示合同列表
 - 集成FormBuilderTTK进行合同编辑
 - 模块化设计,保持代码清晰
 - 遵循MiniCRM开发标准
+- 优先使用transfunctions避免代码重复
 
 作者: MiniCRM开发团队
 """
 
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, messagebox, simpledialog
 from typing import Any, Callable, Dict, List, Optional
 
 from minicrm.services.contract_service import ContractService
 from minicrm.ui.ttk_base.base_widget import BaseWidget
 from minicrm.ui.ttk_base.data_table_ttk import DataTableTTK
+from minicrm.ui.ttk_base import message_dialogs_ttk
+
+# 导入transfunctions
+from transfunctions import (
+    validate_contract_data,
+    generate_contract_document,
+    format_date,
+    format_currency,
+    calculate_contract_status,
+    ValidationError
+)
 
 
 class ContractPanelTTK(BaseWidget):
