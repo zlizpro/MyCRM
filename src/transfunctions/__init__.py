@@ -39,10 +39,13 @@ try:
     from .calculations import (
         CustomerValueMetrics,
         PaginationResult,
+        calculate_contract_status,
         calculate_customer_value_score,
         calculate_growth_rate,
         calculate_pagination,
+        calculate_price_comparison,
         calculate_quote_total,
+        calculate_trend_analysis,
     )
 
     # 数据操作函数和类
@@ -55,6 +58,15 @@ try:
         convert_row_to_dict,
         create_crud_template,
         paginated_search_template,
+    )
+
+    # 文档处理函数
+    from .document_processing import (
+        generate_contract_document,
+        generate_quote_document,
+        generate_service_ticket_report,
+        format_quote_summary,
+        format_service_status,
     )
 
     # 数据格式化函数
@@ -75,9 +87,12 @@ try:
     from .validation import (
         ValidationError,
         ValidationResult,
+        validate_contract_data,
         validate_customer_data,
         validate_email,
         validate_phone,
+        validate_quote_data,
+        validate_service_ticket_data,
         validate_supplier_data,
     )
 
@@ -95,6 +110,9 @@ __all__ = [
     # 验证函数
     "validate_customer_data",
     "validate_supplier_data",
+    "validate_contract_data",
+    "validate_quote_data",
+    "validate_service_ticket_data",
     "validate_email",
     "validate_phone",
     # 格式化函数
@@ -102,12 +120,17 @@ __all__ = [
     "format_phone",
     "format_date",
     "format_address",
+    "format_quote_summary",
+    "format_service_status",
     # 计算类
     "CustomerValueMetrics",
     "PaginationResult",
     # 计算函数
     "calculate_customer_value_score",
     "calculate_quote_total",
+    "calculate_price_comparison",
+    "calculate_trend_analysis",
+    "calculate_contract_status",
     "calculate_pagination",
     "calculate_growth_rate",
     # 数据操作类和函数
@@ -119,6 +142,10 @@ __all__ = [
     "build_search_query",
     "convert_row_to_dict",
     "convert_dict_to_model",
+    # 文档处理函数
+    "generate_contract_document",
+    "generate_quote_document",
+    "generate_service_ticket_report",
     # 报表模板函数
     "generate_dashboard_summary",
     "generate_customer_report",
