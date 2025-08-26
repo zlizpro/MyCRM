@@ -1,130 +1,274 @@
-# MiniCRM Ruff配置文件
-# 针对MiniCRM项目优化的代码质量检查配置
+# Ruff配置文件
+# 提供更详细的Ruff配置，补充pyproject.toml中的基本配置
 
-target-version = "py311"
+# 目标Python版本
+target-version = "py39"
+
+# 代码行长度
 line-length = 88
-src = ["src"]
 
-[lint]
-# 选择适合MiniCRM项目的规则
-select = [
-    # 错误和语法问题
-    "E", # pycodestyle errors
-    "F", # pyflakes
-    "W", # pycodestyle warnings
+# 缩进宽度
+indent-width = 4
 
-    # 代码质量
-    "B",  # flake8-bugbear
-    "C4", # flake8-comprehensions
-    "I",  # isort
-    "N",  # pep8-naming
-    "UP", # pyupgrade
-
-    # 安全性（选择性启用）
-    "S101", # assert检查
-    "S102", # exec检查
-    "S103", # 文件权限检查
-
-    # 性能
-    "PERF", # perflint
-
-    # 简化
-    "SIM", # flake8-simplify
-]
-
-ignore = [
-    # 文档字符串（在开发阶段放宽）
-    "D",
-
-    # 类型注解（MyPy负责）
-    "ANN",
-
-    # 复杂度检查（适度放宽）
-    "PLR0913", # 参数过多
-    "PLR0915", # 语句过多
-    "C901",    # 复杂度过高
-
-    # 安全检查（开发环境）
-    "S104", # 硬编码绑定
-    "S105", # 硬编码密码
-    "S106", # 硬编码密码
-    "S107", # 硬编码密码
-    "S108", # 临时文件
-
-    # 其他宽松设置
-    "EM101",  # 异常消息字符串
-    "EM102",  # 异常消息f-string
-    "TRY003", # 异常消息过长
-    "FBT001", # 布尔参数
-    "FBT002", # 布尔默认值
-    "PTH123", # Path.open
-    "DTZ005", # timezone naive datetime
-
-    # 允许print语句（调试用）
-    "T201",
-]
-
-# 针对不同文件类型的特殊规则
-[lint.per-file-ignores]
-# 测试文件 - 更宽松的规则
-"tests/*" = [
-    "S101",    # 允许assert
-    "PLR2004", # 允许魔法数字
-    "ANN",     # 不要求类型注解
-]
-
-# 示例文件 - 最宽松的规则
-"examples/*" = ["ALL"]
-
-# 脚本文件 - 允许更多灵活性
-"scripts/*" = [
-    "T201",    # 允许print
-    "S101",    # 允许assert
-    "PLR2004", # 允许魔法数字
-]
-
-# 配置文件 - 允许所有
-"**/config/*" = ["ALL"]
-
-# 主入口文件 - 允许print
-"src/minicrm/main.py" = ["T201"]
-
-# UI文件 - 允许更多复杂度
-"src/minicrm/ui/*" = [
-    "PLR0913", # 允许更多参数（UI组件需要）
-    "PLR0915", # 允许更多语句（UI布局代码）
-    "C901",    # 允许更高复杂度（事件处理）
-]
-
-[format]
-# 代码格式化设置
-quote-style = "double"
-indent-style = "space"
-line-ending = "auto"
-
-# 排除格式化的文件
-exclude = [
-    "migrations",
-    "*.pyi",
+# 包含和排除文件
+include = ["*.py", "*.pyi"]
+extend-exclude = [
     "__pycache__",
-    ".git",
+    ".pytest_cache",
     ".mypy_cache",
     ".ruff_cache",
-    ".venv",
-    "venv",
+    "build",
+    "dist",
+    "*.egg-info",
+]
+
+[lint]
+# 启用的规则集 - 更详细的配置
+select = [
+    # Pyflakes
+    "F",
+    # pycodestyle
+    "E", "W",
+    # isort
+    "I",
+    # pep8-naming
+    "N",
+    # pydocstyle
+    "D",
+    # pyupgrade
+    "UP",
+    # flake8-2020
+    "YTT",
+    # flake8-annotations
+    "ANN",
+    # flake8-async
+    "ASYNC",
+    # flake8-bandit
+    "S",
+    # flake8-blind-except
+    "BLE",
+    # flake8-boolean-trap
+    "FBT",
+    # flake8-bugbear
+    "B",
+    # flake8-builtins
+    "A",
+    # flake8-commas
+    "COM",
+    # flake8-comprehensions
+    "C4",
+    # flake8-datetimez
+    "DTZ",
+    # flake8-debugger
+    "T10",
+    # flake8-django
+    "DJ",
+    # flake8-errmsg
+    "EM",
+    # flake8-executable
+    "EXE",
+    # flake8-future-annotations
+    "FA",
+    # flake8-implicit-str-concat
+    "ISC",
+    # flake8-import-conventions
+    "ICN",
+    # flake8-logging-format
+    "G",
+    # flake8-no-pep420
+    "INP",
+    # flake8-pie
+    "PIE",
+    # flake8-print
+    "T20",
+    # flake8-pyi
+    "PYI",
+    # flake8-pytest-style
+    "PT",
+    # flake8-quotes
+    "Q",
+    # flake8-raise
+    "RSE",
+    # flake8-return
+    "RET",
+    # flake8-self
+    "SLF",
+    # flake8-simplify
+    "SIM",
+    # flake8-tidy-imports
+    "TID",
+    # flake8-type-checking
+    "TCH",
+    # flake8-unused-arguments
+    "ARG",
+    # flake8-use-pathlib
+    "PTH",
+    # eradicate
+    "ERA",
+    # pandas-vet
+    "PD",
+    # pygrep-hooks
+    "PGH",
+    # Pylint
+    "PL",
+    # tryceratops
+    "TRY",
+    # flynt
+    "FLY",
+    # NumPy-specific rules
+    "NPY",
+    # Airflow
+    "AIR",
+    # Perflint
+    "PERF",
+    # Refurb
+    "FURB",
+    # flake8-logging
+    "LOG",
+    # Ruff-specific rules
+    "RUF",
+]
+
+# 忽略的规则
+ignore = [
+    # 行长度相关 (由line-length处理)
+    "E501",   # line-too-long
+
+    # 文档字符串相关 (根据项目需要调整)
+    "D100",   # Missing docstring in public module
+    "D101",   # Missing docstring in public class
+    "D102",   # Missing docstring in public method
+    "D103",   # Missing docstring in public function
+    "D104",   # Missing docstring in public package
+    "D105",   # Missing docstring in magic method
+    "D107",   # Missing docstring in __init__
+    "D203",   # 1 blank line required before class docstring
+    "D213",   # Multi-line docstring summary should start at the second line
+
+    # 类型注解相关 (逐步启用)
+    "ANN001", # Missing type annotation for function argument
+    "ANN002", # Missing type annotation for *args
+    "ANN003", # Missing type annotation for **kwargs
+    "ANN101", # Missing type annotation for self in method
+    "ANN102", # Missing type annotation for cls in classmethod
+    "ANN201", # Missing return type annotation for public function
+    "ANN202", # Missing return type annotation for private function
+    "ANN204", # Missing return type annotation for special method
+    "ANN205", # Missing return type annotation for staticmethod
+    "ANN206", # Missing return type annotation for classmethod
+
+    # 安全相关 (根据实际情况调整)
+    "S101",   # Use of assert detected
+    "S104",   # Possible binding to all interfaces
+    "S108",   # Probable insecure usage of temp file/directory
+    "S301",   # pickle and modules that wrap it can be unsafe
+    "S311",   # Standard pseudo-random generators are not suitable for security/cryptographic purposes
+    "S324",   # Probable use of insecure hash functions
+    "S603",   # subprocess call: check for execution of untrusted input
+    "S607",   # Starting a process with a partial executable path
+
+    # 其他规则
+    "B008",   # Do not perform function calls in argument defaults
+    "B904",   # Within an except clause, raise exceptions with raise ... from err
+    "COM812", # Trailing comma missing
+    "FBT001", # Boolean positional arg in function definition
+    "FBT002", # Boolean default value in function definition
+    "PLR0913", # Too many arguments to function call
+    "PLR0912", # Too many branches
+    "PLR0915", # Too many statements
+    "PLR2004", # Magic value used in comparison
+    "TRY003", # Avoid specifying long messages outside the exception class
+    "UP007",  # Use X | Y for type annotations (Python 3.10+ syntax)
+]
+
+# 每个文件允许的最大复杂度
+mccabe = { max-complexity = 12 }
+
+# 特定文件的规则覆盖
+[lint.per-file-ignores]
+# 测试文件的特殊规则
+"tests/**/*.py" = [
+    "D",      # 测试文件不需要文档字符串
+    "S101",   # 测试中可以使用assert
+    "ANN",    # 测试文件不需要类型注解
+    "PLR2004", # 测试中可以使用魔法数字
+    "SLF001", # 测试中可以访问私有成员
+]
+
+# __init__.py文件的特殊规则
+"**/__init__.py" = [
+    "D104",   # __init__.py不需要文档字符串
+    "F401",   # 允许未使用的导入 (用于重新导出)
+    "F403",   # 允许star imports
+]
+
+# 配置文件的特殊规则
+"**/config/**/*.py" = [
+    "S105",   # 配置文件中可能包含硬编码密码
+    "S106",   # 配置文件中可能包含硬编码密码
+]
+
+# 主程序入口文件
+"main.py" = [
+    "T201",   # 主程序可以使用print
 ]
 
 [lint.isort]
-# import排序配置
-known-first-party = ["minicrm", "transfunctions"]
+# 导入排序配置
+known-first-party = ["minicrm"]
+known-third-party = [
+    "docxtpl",
+    "openpyxl",
+    "pydantic",
+    "dateutil",
+    "reportlab",
+    "matplotlib",
+    "pandas",
+    "numpy",
+    "pytest",
+]
+section-order = [
+    "future",
+    "standard-library",
+    "third-party",
+    "first-party",
+    "local-folder"
+]
 force-single-line = false
+force-sort-within-sections = true
 lines-after-imports = 2
+combine-as-imports = true
 
-[lint.mccabe]
-# 复杂度检查配置
-max-complexity = 15 # 适度的复杂度限制
+[lint.pydocstyle]
+# 文档字符串风格
+convention = "google"
 
-[lint.pycodestyle]
-# 代码风格配置
-max-line-length = 88
-ignore-overlong-task-comments = true
+[lint.pylint]
+# Pylint配置
+max-args = 8
+max-branches = 15
+max-returns = 8
+max-statements = 60
+
+[lint.flake8-quotes]
+# 引号风格
+inline-quotes = "double"
+multiline-quotes = "double"
+docstring-quotes = "double"
+avoid-escape = true
+
+[lint.flake8-builtins]
+# 内置函数名检查
+builtins-ignorelist = ["id", "type", "input", "filter", "map"]
+
+[lint.flake8-type-checking]
+# 类型检查导入
+strict = true
+
+[format]
+# 格式化配置
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
+docstring-code-format = true
+docstring-code-line-length = 72

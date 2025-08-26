@@ -1,13 +1,14 @@
 """
 Transfunctions - 统计计算
 
-提供分页、统计等通用计算功能。
+提供分页、统计等通用计算功能.
 """
 
 import logging
 import math
 from dataclasses import dataclass
 from typing import Any
+
 
 # 配置日志
 logger = logging.getLogger(__name__)
@@ -62,7 +63,7 @@ def calculate_pagination(
 
     Args:
         total_items: 总记录数
-        current_page: 当前页码（从1开始）
+        current_page: 当前页码(从1开始)
         page_size: 每页大小
 
     Returns:
@@ -73,7 +74,7 @@ def calculate_pagination(
 
     Example:
         >>> pagination = calculate_pagination(100, 3, 20)
-        >>> print(f"第{pagination.current_page}页，共{pagination.total_pages}页")
+        >>> print(f"第{pagination.current_page}页,共{pagination.total_pages}页")
     """
     try:
         # 参数验证
@@ -133,7 +134,7 @@ def calculate_growth_rate(current_value: float, previous_value: float) -> float:
         previous_value: 之前值
 
     Returns:
-        float: 增长率（百分比，如15.5表示15.5%）
+        float: 增长率(百分比,如15.5表示15.5%)
     """
     if previous_value == 0:
         return 100.0 if current_value > 0 else 0.0

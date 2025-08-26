@@ -1,0 +1,135 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600">
+  <!-- 背景 -->
+  <rect width="800" height="600" fill="#f8f9fa" />
+  
+  <!-- 标题 -->
+  <text x="400" y="30" font-family="Arial" font-size="24" text-anchor="middle" font-weight="bold">MiniCRM 系统架构图</text>
+  
+  <!-- 图层框架 -->
+  <!-- UI层 -->
+  <rect x="50" y="70" width="700" height="100" rx="5" ry="5" fill="#e6f7ff" stroke="#1890ff" stroke-width="2" />
+  <text x="400" y="95" font-family="Arial" font-size="18" text-anchor="middle" font-weight="bold">UI层</text>
+  
+  <!-- UI层组件 -->
+  <rect x="80" y="110" width="120" height="40" rx="5" ry="5" fill="#bae7ff" stroke="#1890ff" stroke-width="1" />
+  <text x="140" y="135" font-family="Arial" font-size="12" text-anchor="middle">MainWindow</text>
+  
+  <rect x="220" y="110" width="120" height="40" rx="5" ry="5" fill="#bae7ff" stroke="#1890ff" stroke-width="1" />
+  <text x="280" y="135" font-family="Arial" font-size="12" text-anchor="middle">NavigationPanel</text>
+  
+  <rect x="360" y="110" width="120" height="40" rx="5" ry="5" fill="#bae7ff" stroke="#1890ff" stroke-width="1" />
+  <text x="420" y="135" font-family="Arial" font-size="12" text-anchor="middle">Dashboard</text>
+  
+  <rect x="500" y="110" width="120" height="40" rx="5" ry="5" fill="#bae7ff" stroke="#1890ff" stroke-width="1" />
+  <text x="560" y="135" font-family="Arial" font-size="12" text-anchor="middle">DialogComponents</text>
+  
+  <!-- 服务层 -->
+  <rect x="50" y="190" width="700" height="100" rx="5" ry="5" fill="#f6ffed" stroke="#52c41a" stroke-width="2" />
+  <text x="400" y="215" font-family="Arial" font-size="18" text-anchor="middle" font-weight="bold">服务层</text>
+  
+  <!-- 服务层组件 -->
+  <rect x="80" y="230" width="100" height="40" rx="5" ry="5" fill="#d9f7be" stroke="#52c41a" stroke-width="1" />
+  <text x="130" y="255" font-family="Arial" font-size="12" text-anchor="middle">CustomerService</text>
+  
+  <rect x="190" y="230" width="100" height="40" rx="5" ry="5" fill="#d9f7be" stroke="#52c41a" stroke-width="1" />
+  <text x="240" y="255" font-family="Arial" font-size="12" text-anchor="middle">SupplierService</text>
+  
+  <rect x="300" y="230" width="100" height="40" rx="5" ry="5" fill="#d9f7be" stroke="#52c41a" stroke-width="1" />
+  <text x="350" y="255" font-family="Arial" font-size="12" text-anchor="middle">ContractService</text>
+  
+  <rect x="410" y="230" width="100" height="40" rx="5" ry="5" fill="#d9f7be" stroke="#52c41a" stroke-width="1" />
+  <text x="460" y="255" font-family="Arial" font-size="12" text-anchor="middle">AnalyticsService</text>
+  
+  <rect x="520" y="230" width="100" height="40" rx="5" ry="5" fill="#d9f7be" stroke="#52c41a" stroke-width="1" />
+  <text x="570" y="255" font-family="Arial" font-size="12" text-anchor="middle">SettingsService</text>
+  
+  <!-- 数据访问层 -->
+  <rect x="50" y="310" width="700" height="100" rx="5" ry="5" fill="#fff7e6" stroke="#fa8c16" stroke-width="2" />
+  <text x="400" y="335" font-family="Arial" font-size="18" text-anchor="middle" font-weight="bold">数据访问层</text>
+  
+  <!-- 数据访问层组件 -->
+  <rect x="80" y="350" width="100" height="40" rx="5" ry="5" fill="#ffe7ba" stroke="#fa8c16" stroke-width="1" />
+  <text x="130" y="375" font-family="Arial" font-size="12" text-anchor="middle">CustomerDAO</text>
+  
+  <rect x="190" y="350" width="100" height="40" rx="5" ry="5" fill="#ffe7ba" stroke="#fa8c16" stroke-width="1" />
+  <text x="240" y="375" font-family="Arial" font-size="12" text-anchor="middle">SupplierDAO</text>
+  
+  <rect x="300" y="350" width="100" height="40" rx="5" ry="5" fill="#ffe7ba" stroke="#fa8c16" stroke-width="1" />
+  <text x="350" y="375" font-family="Arial" font-size="12" text-anchor="middle">ContractDAO</text>
+  
+  <rect x="410" y="350" width="100" height="40" rx="5" ry="5" fill="#ffe7ba" stroke="#fa8c16" stroke-width="1" />
+  <text x="460" y="375" font-family="Arial" font-size="12" text-anchor="middle">AnalyticsDAO</text>
+  
+  <rect x="520" y="350" width="100" height="40" rx="5" ry="5" fill="#ffe7ba" stroke="#fa8c16" stroke-width="1" />
+  <text x="570" y="375" font-family="Arial" font-size="12" text-anchor="middle">SettingsDAO</text>
+  
+  <!-- 数据库层 -->
+  <rect x="50" y="430" width="700" height="80" rx="5" ry="5" fill="#f9f0ff" stroke="#722ed1" stroke-width="2" />
+  <text x="400" y="455" font-family="Arial" font-size="18" text-anchor="middle" font-weight="bold">数据库层</text>
+  
+  <!-- 数据库层组件 -->
+  <rect x="250" y="470" width="300" height="30" rx="5" ry="5" fill="#efdbff" stroke="#722ed1" stroke-width="1" />
+  <text x="400" y="490" font-family="Arial" font-size="12" text-anchor="middle">DatabaseManager (SQLite)</text>
+  
+  <!-- 通用功能层 -->
+  <rect x="50" y="530" width="700" height="60" rx="5" ry="5" fill="#fff2f0" stroke="#ff4d4f" stroke-width="2" />
+  <text x="400" y="555" font-family="Arial" font-size="18" text-anchor="middle" font-weight="bold">通用功能层 (Transfunctions)</text>
+  
+  <!-- 通用功能组件 -->
+  <rect x="80" y="560" width="100" height="20" rx="3" ry="3" fill="#ffccc7" stroke="#ff4d4f" stroke-width="1" />
+  <text x="130" y="575" font-family="Arial" font-size="10" text-anchor="middle">validation</text>
+  
+  <rect x="190" y="560" width="100" height="20" rx="3" ry="3" fill="#ffccc7" stroke="#ff4d4f" stroke-width="1" />
+  <text x="240" y="575" font-family="Arial" font-size="10" text-anchor="middle">formatting</text>
+  
+  <rect x="300" y="560" width="100" height="20" rx="3" ry="3" fill="#ffccc7" stroke="#ff4d4f" stroke-width="1" />
+  <text x="350" y="575" font-family="Arial" font-size="10" text-anchor="middle">calculations</text>
+  
+  <rect x="410" y="560" width="100" height="20" rx="3" ry="3" fill="#ffccc7" stroke="#ff4d4f" stroke-width="1" />
+  <text x="460" y="575" font-family="Arial" font-size="10" text-anchor="middle">business</text>
+  
+  <rect x="520" y="560" width="100" height="20" rx="3" ry="3" fill="#ffccc7" stroke="#ff4d4f" stroke-width="1" />
+  <text x="570" y="575" font-family="Arial" font-size="10" text-anchor="middle">core</text>
+  
+  <!-- 连接线 -->
+  <!-- UI层到服务层 -->
+  <line x1="140" y1="150" x2="130" y2="230" stroke="#1890ff" stroke-width="1.5" stroke-dasharray="5,3" />
+  <line x1="280" y1="150" x2="240" y2="230" stroke="#1890ff" stroke-width="1.5" stroke-dasharray="5,3" />
+  <line x1="420" y1="150" x2="460" y2="230" stroke="#1890ff" stroke-width="1.5" stroke-dasharray="5,3" />
+  <line x1="560" y1="150" x2="570" y2="230" stroke="#1890ff" stroke-width="1.5" stroke-dasharray="5,3" />
+  
+  <!-- 服务层到数据访问层 -->
+  <line x1="130" y1="270" x2="130" y2="350" stroke="#52c41a" stroke-width="1.5" stroke-dasharray="5,3" />
+  <line x1="240" y1="270" x2="240" y2="350" stroke="#52c41a" stroke-width="1.5" stroke-dasharray="5,3" />
+  <line x1="350" y1="270" x2="350" y2="350" stroke="#52c41a" stroke-width="1.5" stroke-dasharray="5,3" />
+  <line x1="460" y1="270" x2="460" y2="350" stroke="#52c41a" stroke-width="1.5" stroke-dasharray="5,3" />
+  <line x1="570" y1="270" x2="570" y2="350" stroke="#52c41a" stroke-width="1.5" stroke-dasharray="5,3" />
+  
+  <!-- 数据访问层到数据库层 -->
+  <line x1="130" y1="390" x2="300" y2="470" stroke="#fa8c16" stroke-width="1.5" stroke-dasharray="5,3" />
+  <line x1="240" y1="390" x2="350" y2="470" stroke="#fa8c16" stroke-width="1.5" stroke-dasharray="5,3" />
+  <line x1="350" y1="390" x2="380" y2="470" stroke="#fa8c16" stroke-width="1.5" stroke-dasharray="5,3" />
+  <line x1="460" y1="390" x2="420" y2="470" stroke="#fa8c16" stroke-width="1.5" stroke-dasharray="5,3" />
+  <line x1="570" y1="390" x2="500" y2="470" stroke="#fa8c16" stroke-width="1.5" stroke-dasharray="5,3" />
+  
+  <!-- 通用功能层连接到所有层 -->
+  <line x1="130" y1="560" x2="130" y2="390" stroke="#ff4d4f" stroke-width="1" stroke-dasharray="3,2" />
+  <line x1="240" y1="560" x2="240" y2="390" stroke="#ff4d4f" stroke-width="1" stroke-dasharray="3,2" />
+  <line x1="350" y1="560" x2="350" y2="390" stroke="#ff4d4f" stroke-width="1" stroke-dasharray="3,2" />
+  <line x1="460" y1="560" x2="460" y2="390" stroke="#ff4d4f" stroke-width="1" stroke-dasharray="3,2" />
+  <line x1="570" y1="560" x2="570" y2="390" stroke="#ff4d4f" stroke-width="1" stroke-dasharray="3,2" />
+  
+  <line x1="130" y1="560" x2="130" y2="270" stroke="#ff4d4f" stroke-width="1" stroke-dasharray="3,2" />
+  <line x1="240" y1="560" x2="240" y2="270" stroke="#ff4d4f" stroke-width="1" stroke-dasharray="3,2" />
+  <line x1="350" y1="560" x2="350" y2="270" stroke="#ff4d4f" stroke-width="1" stroke-dasharray="3,2" />
+  <line x1="460" y1="560" x2="460" y2="270" stroke="#ff4d4f" stroke-width="1" stroke-dasharray="3,2" />
+  <line x1="570" y1="560" x2="570" y2="270" stroke="#ff4d4f" stroke-width="1" stroke-dasharray="3,2" />
+  
+  <!-- 应用核心 -->
+  <rect x="630" y="110" width="100" height="380" rx="5" ry="5" fill="#f0f5ff" stroke="#2f54eb" stroke-width="2" />
+  <text x="680" y="300" font-family="Arial" font-size="14" text-anchor="middle" font-weight="bold" transform="rotate(90,680,300)">MiniCRMApplication</text>
+  
+  <!-- 事件总线 -->
+  <rect x="50" y="110" width="20" height="380" rx="5" ry="5" fill="#fcffe6" stroke="#a0d911" stroke-width="2" />
+  <text x="60" y="300" font-family="Arial" font-size="14" text-anchor="middle" font-weight="bold" transform="rotate(270,60,300)">EventBus</text>
+</svg>

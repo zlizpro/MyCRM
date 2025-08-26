@@ -1,7 +1,7 @@
 """
 数据访问层接口定义
 
-定义所有数据访问对象的接口契约，确保：
+定义所有数据访问对象的接口契约,确保:
 - 数据访问的标准化
 - 数据层的松耦合
 - 易于数据源切换
@@ -39,7 +39,7 @@ class IBaseDAO(ABC):
             record_id: 记录ID
 
         Returns:
-            Optional[Dict[str, Any]]: 记录数据，不存在时返回None
+            Optional[Dict[str, Any]]: 记录数据,不存在时返回None
         """
         pass
 
@@ -123,12 +123,12 @@ class ICustomerDAO(IBaseDAO):
         pass
 
     @abstractmethod
-    def get_by_level(self, level: str) -> list[dict[str, Any]]:
+    def get_by_type(self, customer_type_id: int) -> list[dict[str, Any]]:
         """
-        根据客户等级获取客户列表
+        根据客户类型获取客户列表
 
         Args:
-            level: 客户等级
+            customer_type_id: 客户类型ID
 
         Returns:
             List[Dict[str, Any]]: 客户列表
@@ -179,12 +179,12 @@ class ISupplierDAO(IBaseDAO):
         pass
 
     @abstractmethod
-    def get_by_type(self, supplier_type_id: int) -> list[dict[str, Any]]:
+    def get_by_quality_rating(self, min_rating: float) -> list[dict[str, Any]]:
         """
-        根据供应商类型获取供应商列表
+        根据质量评级获取供应商列表
 
         Args:
-            supplier_type_id: 供应商类型ID
+            min_rating: 最低质量评级
 
         Returns:
             List[Dict[str, Any]]: 供应商列表

@@ -1,18 +1,17 @@
-"""
-transfunctions - MiniCRM 可复用函数库
+"""transfunctions - MiniCRM 可复用函数库
 
-这个模块提供了MiniCRM系统中所有可复用的核心函数，包括：
+这个模块提供了MiniCRM系统中所有可复用的核心函数,包括:
 - 数据验证函数 (validation)
 - 数据格式化函数 (formatting)
 - 业务计算函数 (calculations)
 
-设计原则：
-1. 每个函数都是纯函数，无副作用
+设计原则:
+1. 每个函数都是纯函数,无副作用
 2. 完整的类型注解和文档字符串
 3. 统一的错误处理机制
 4. 高度可复用和可测试
 
-使用示例：
+使用示例:
     from transfunctions import validate_customer_data, format_currency
 
     # 验证客户数据
@@ -41,6 +40,7 @@ try:
         CustomerValueMetrics,
         PaginationResult,
         calculate_customer_value_score,
+        calculate_growth_rate,
         calculate_pagination,
         calculate_quote_total,
     )
@@ -64,6 +64,14 @@ try:
         format_date,
         format_phone,
     )
+
+    # 报表模板函数
+    from .report_templates import (
+        generate_customer_report,
+        generate_dashboard_summary,
+        generate_sales_report,
+        generate_supplier_report,
+    )
     from .validation import (
         ValidationError,
         ValidationResult,
@@ -77,7 +85,7 @@ try:
 
 except ImportError as e:
     logger.warning(f"部分transfunctions模块导入失败: {e}")
-    # 在开发阶段，某些模块可能还未实现，这是正常的
+    # 在开发阶段,某些模块可能还未实现,这是正常的
 
 # 导出的公共接口
 __all__ = [
@@ -101,6 +109,7 @@ __all__ = [
     "calculate_customer_value_score",
     "calculate_quote_total",
     "calculate_pagination",
+    "calculate_growth_rate",
     # 数据操作类和函数
     "CRUDTemplate",
     "QueryBuilder",
@@ -110,6 +119,11 @@ __all__ = [
     "build_search_query",
     "convert_row_to_dict",
     "convert_dict_to_model",
+    # 报表模板函数
+    "generate_dashboard_summary",
+    "generate_customer_report",
+    "generate_sales_report",
+    "generate_supplier_report",
 ]
 
 # 模块级别的配置常量

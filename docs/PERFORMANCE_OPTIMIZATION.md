@@ -294,7 +294,8 @@ class BatchOperationManager:
 #### 后台任务管理器
 
 ```python
-from PySide6.QtCore import QThread, QObject, Signal
+import threading
+from typing import Callable
 from concurrent.futures import ThreadPoolExecutor
 import asyncio
 
@@ -371,7 +372,7 @@ class ProgressiveDataLoader(QObject):
 
 ```python
 import matplotlib.pyplot as plt
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import numpy as np
 
 class OptimizedChartWidget(FigureCanvasQTAgg):
@@ -637,8 +638,9 @@ profiler = PerformanceProfiler()
 #### 性能监控仪表盘
 
 ```python
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QProgressBar
-from PySide6.QtCore import QTimer
+import tkinter as tk
+from tkinter import ttk
+import threading
 import psutil
 
 class PerformanceMonitorWidget(QWidget):

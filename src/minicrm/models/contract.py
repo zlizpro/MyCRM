@@ -1,14 +1,14 @@
 """
 MiniCRM 合同数据模型
 
-定义合同相关的数据结构和业务逻辑，包括：
+定义合同相关的数据结构和业务逻辑,包括:
 - 合同基本信息模型
 - 合同状态和生命周期管理
 - 合同条款和条件
 - 数据验证和格式化
 - 与transfunctions的集成
 
-设计原则：
+设计原则:
 - 使用dataclass简化模型定义
 - 支持客户合同和供应商合同
 - 提供合同状态管理和到期提醒
@@ -21,8 +21,9 @@ from decimal import Decimal
 from enum import Enum
 from typing import Any
 
-from transfunctions import ValidationError, format_currency, format_date
+from transfunctions import format_currency, format_date
 
+from ..core.exceptions import ValidationError
 from .base import NamedModel, register_model
 
 
@@ -66,8 +67,8 @@ class Contract(NamedModel):
     """
     合同数据模型
 
-    继承自NamedModel，包含合同的完整信息，包括基本信息、
-    合同条款、状态管理、财务信息等。
+    继承自NamedModel,包含合同的完整信息,包括基本信息、
+    合同条款、状态管理、财务信息等.
     """
 
     # 合同基本信息
@@ -76,15 +77,15 @@ class Contract(NamedModel):
     contract_status: ContractStatus = ContractStatus.DRAFT
 
     # 关联方信息
-    customer_id: int | None = None  # 客户ID（销售合同）
-    supplier_id: int | None = None  # 供应商ID（采购合同）
+    customer_id: int | None = None  # 客户ID(销售合同)
+    supplier_id: int | None = None  # 供应商ID(采购合同)
     party_name: str = ""  # 合同方名称
 
     # 合同金额和条款
     contract_amount: Decimal = Decimal("0.00")  # 合同总金额
     currency: str = "CNY"  # 货币类型
     payment_method: PaymentMethod = PaymentMethod.BANK_TRANSFER
-    payment_terms: int = 30  # 付款期限（天）
+    payment_terms: int = 30  # 付款期限(天)
 
     # 合同时间
     sign_date: datetime | None = None  # 签署日期
@@ -121,7 +122,7 @@ class Contract(NamedModel):
         self.delivery_terms = self.delivery_terms.strip()
         self.warranty_terms = self.warranty_terms.strip()
 
-        # 生成合同编号（如果未提供）
+        # 生成合同编号(如果未提供)
         if not self.contract_number:
             self.contract_number = self._generate_contract_number()
 
@@ -139,7 +140,7 @@ class Contract(NamedModel):
         if not self.party_name:
             raise ValidationError("合同方名称不能为空")
 
-        # 验证关联方ID（在有party_name的情况下可以暂时不要求ID）
+        # 验证关联方ID(在有party_name的情况下可以暂时不要求ID)
         if (
             self.contract_type == ContractType.SALES
             and not self.customer_id
@@ -214,7 +215,7 @@ class Contract(NamedModel):
         检查合同是否即将到期
 
         Args:
-            days_threshold: 到期预警阈值（天），默认使用合同设置的提醒天数
+            days_threshold: 到期预警阈值(天),默认使用合同设置的提醒天数
 
         Returns:
             bool: 是否即将到期
@@ -235,7 +236,7 @@ class Contract(NamedModel):
         return max(0, remaining)
 
     def get_contract_duration_days(self) -> int:
-        """获取合同总期限（天）"""
+        """获取合同总期限(天)"""
         if not self.effective_date or not self.expiry_date:
             return 0
         return (self.expiry_date - self.effective_date).days
@@ -275,19 +276,19 @@ class Contract(NamedModel):
         签署合同
 
         Args:
-            sign_date: 签署日期，默认为当前时间
+            sign_date: 签署日期,默认为当前时间
         """
         if self.contract_status not in [
             ContractStatus.DRAFT,
             ContractStatus.PENDING,
             ContractStatus.APPROVED,
         ]:
-            raise ValidationError(f"合同状态为{self.contract_status.value}，无法签署")
+            raise ValidationError(f"合同状态为{self.contract_status.value},无法签署")
 
         self.sign_date = sign_date or datetime.now()
         self.contract_status = ContractStatus.SIGNED
 
-        # 如果没有设置生效日期，默认为签署日期
+        # 如果没有设置生效日期,默认为签署日期
         if not self.effective_date:
             self.effective_date = self.sign_date
 
@@ -305,7 +306,7 @@ class Contract(NamedModel):
             ContractStatus.TERMINATED,
             ContractStatus.EXPIRED,
         ]:
-            raise ValidationError(f"合同状态为{self.contract_status.value}，无法终止")
+            raise ValidationError(f"合同状态为{self.contract_status.value},无法终止")
 
         self.contract_status = ContractStatus.TERMINATED
         if reason:
@@ -371,7 +372,7 @@ class Contract(NamedModel):
         return status_map.get(self.contract_status, "未知")
 
     def to_dict(self, include_private: bool = False) -> dict[str, Any]:
-        """转换为字典，包含格式化的字段"""
+        """转换为字典,包含格式化的字段"""
         data = super().to_dict(include_private)
 
         # 添加格式化字段

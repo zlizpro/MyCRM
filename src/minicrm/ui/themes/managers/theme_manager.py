@@ -1,15 +1,12 @@
-"""
-MiniCRM 主题管理器 - 重构版本
+"""MiniCRM 主题管理器 - TTK版本
 
-使用模块化设计的主题管理器，支持用户偏好保存和跨平台适配
+使用模块化设计的主题管理器,支持用户偏好保存和跨平台适配
+完全基于TTK,无Qt依赖
 """
 
 import logging
 import platform
 from typing import Any
-
-from PySide6.QtCore import QObject, Signal
-from PySide6.QtWidgets import QApplication
 
 from .stylesheet_generator import StylesheetGenerator
 from .theme_applicator import ThemeApplicator
@@ -17,23 +14,19 @@ from .theme_definitions import get_theme_definitions
 from .theme_io_manager import ThemeIOManager
 
 
-class ThemeManager(QObject):
-    """
-    主题管理器 - 重构版本
+class ThemeManager:
+    """主题管理器 - TTK版本
 
-    使用模块化设计：
+    使用模块化设计:
     - ThemeDefinitions: 主题定义
     - StylesheetGenerator: 样式表生成
     - ThemeApplicator: 主题应用
     - ThemeIOManager: 导入导出
     - 集成用户偏好保存和跨平台适配
 
-    Signals:
-        theme_changed: 主题切换信号 (theme_name: str)
+    回调机制:
+        theme_changed_callbacks: 主题切换回调列表
     """
-
-    # Qt信号定义
-    theme_changed = Signal(str)
 
     _instance = None  # 单例实例
 
@@ -49,12 +42,13 @@ class ThemeManager(QObject):
         if hasattr(self, "_initialized"):
             return
 
-        super().__init__()
-
         self._logger = logging.getLogger(__name__)
         self._current_theme = "light"
 
-        # 配置管理器（延迟导入以避免循环依赖）
+        # 主题变化回调列表(替代Qt信号)
+        self._theme_changed_callbacks: list[Callable[[str], None]] = []
+
+        # 配置管理器(延迟导入以避免循环依赖)
         self._config = None
 
         # 组件管理器
@@ -72,7 +66,7 @@ class ThemeManager(QObject):
         self._platform = platform.system().lower()
         self._is_high_dpi = self._detect_high_dpi()
 
-        # 从配置加载主题（如果可用）
+        # 从配置加载主题(如果可用)
         self._load_theme_from_config()
 
         self._initialized = True
@@ -117,12 +111,12 @@ class ThemeManager(QObject):
                 adjusted_config, stylesheet
             )
 
-            # 保存用户偏好（如果不是自动模式触发的切换）
+            # 保存用户偏好(如果不是自动模式触发的切换)
             if save_preference and not self.is_auto_theme_enabled():
                 self.save_theme_preference(theme_id)
 
-            # 发送信号
-            self.theme_changed.emit(theme_id)
+            # 触发回调
+            self._trigger_theme_changed_callbacks(theme_id)
 
             self._logger.info(f"主题切换成功: {theme_id}")
             return True
@@ -236,36 +230,42 @@ class ThemeManager(QObject):
                 del self._custom_themes[theme_id]
                 self._logger.info(f"自定义主题删除成功: {theme_id}")
                 return True
-            else:
-                self._logger.warning(f"自定义主题不存在: {theme_id}")
-                return False
+            self._logger.warning(f"自定义主题不存在: {theme_id}")
+            return False
 
         except Exception as e:
             self._logger.error(f"自定义主题删除失败: {e}")
             return False
 
     def _detect_high_dpi(self) -> bool:
-        """检测是否为高DPI显示"""
+        """检测是否为高DPI显示 - TTK版本"""
         try:
-            app = QApplication.instance()
-            if app:
-                # 获取设备像素比
-                device_pixel_ratio = app.devicePixelRatio()
-                return device_pixel_ratio > 1.0
-            return False
+            # 在TTK中,我们可以通过tkinter获取DPI信息
+            import tkinter as tk
+
+            # 创建临时窗口来检测DPI
+            temp_root = tk.Tk()
+            temp_root.withdraw()  # 隐藏窗口
+
+            # 获取DPI信息
+            dpi = temp_root.winfo_fpixels("1i")  # 每英寸像素数
+            temp_root.destroy()
+
+            # 标准DPI是96,高DPI通常是144或更高
+            return dpi > 120
         except Exception as e:
             self._logger.warning(f"高DPI检测失败: {e}")
             return False
 
     def _get_config(self):
-        """获取配置管理器实例（延迟导入）"""
+        """获取配置管理器实例(延迟导入)"""
         if self._config is None:
             try:
                 from minicrm.core.config import AppConfig
 
                 self._config = AppConfig()
             except ImportError:
-                self._logger.warning("配置管理器不可用，使用默认设置")
+                self._logger.warning("配置管理器不可用,使用默认设置")
                 self._config = False  # 标记为不可用
         return self._config if self._config is not False else None
 
@@ -279,21 +279,21 @@ class ThemeManager(QObject):
                 theme_mode = config.get_theme_mode()
 
                 if theme_mode == ThemeMode.AUTO:
-                    # 自动模式：根据系统主题选择
+                    # 自动模式:根据系统主题选择
                     system_theme = self._detect_system_theme()
                     self._current_theme = system_theme
                 else:
-                    # 手动模式：使用配置的主题
+                    # 手动模式:使用配置的主题
                     self._current_theme = theme_mode.value
 
                 self._logger.info(f"从配置加载主题: {self._current_theme}")
             else:
-                # 配置不可用，使用默认主题
+                # 配置不可用,使用默认主题
                 self._current_theme = "light"
-                self._logger.info("配置不可用，使用默认主题: light")
+                self._logger.info("配置不可用,使用默认主题: light")
 
         except Exception as e:
-            self._logger.warning(f"从配置加载主题失败，使用默认主题: {e}")
+            self._logger.warning(f"从配置加载主题失败,使用默认主题: {e}")
             self._current_theme = "light"
 
     def _detect_system_theme(self) -> str:
@@ -301,11 +301,10 @@ class ThemeManager(QObject):
         try:
             if self._platform == "windows":
                 return self._detect_windows_theme()
-            elif self._platform == "darwin":  # macOS
+            if self._platform == "darwin":  # macOS
                 return self._detect_macos_theme()
-            else:
-                # Linux等其他系统默认使用浅色主题
-                return "light"
+            # Linux等其他系统默认使用浅色主题
+            return "light"
         except Exception as e:
             self._logger.warning(f"系统主题检测失败: {e}")
             return "light"
@@ -339,11 +338,12 @@ class ThemeManager(QObject):
             # 使用defaults命令检查macOS主题
             result = subprocess.run(
                 ["defaults", "read", "-g", "AppleInterfaceStyle"],
+                check=False,
                 capture_output=True,
                 text=True,
             )
 
-            # 如果返回"Dark"则为深色主题，否则为浅色主题
+            # 如果返回"Dark"则为深色主题,否则为浅色主题
             return "dark" if result.stdout.strip() == "Dark" else "light"
 
         except Exception as e:
@@ -475,7 +475,7 @@ class ThemeManager(QObject):
                 config.set_theme_mode(theme_mode)
                 self._logger.info(f"主题偏好已保存: {theme_id}")
             else:
-                self._logger.warning("配置管理器不可用，无法保存主题偏好")
+                self._logger.warning("配置管理器不可用,无法保存主题偏好")
 
         except Exception as e:
             self._logger.error(f"保存主题偏好失败: {e}")
@@ -503,7 +503,7 @@ class ThemeManager(QObject):
 
                 self._logger.info(f"自动主题模式: {'启用' if enabled else '禁用'}")
             else:
-                self._logger.warning("配置管理器不可用，无法设置自动主题模式")
+                self._logger.warning("配置管理器不可用,无法设置自动主题模式")
 
         except Exception as e:
             self._logger.error(f"设置自动主题模式失败: {e}")
@@ -549,6 +549,36 @@ class ThemeManager(QObject):
         except ImportError as e:
             self._logger.warning(f"无法创建组件样式应用器: {e}")
             return None
+
+    def add_theme_changed_callback(self, callback: Callable[[str], None]) -> None:
+        """添加主题变化回调函数
+
+        Args:
+            callback: 回调函数,接收主题ID参数
+        """
+        if callback not in self._theme_changed_callbacks:
+            self._theme_changed_callbacks.append(callback)
+
+    def remove_theme_changed_callback(self, callback: Callable[[str], None]) -> None:
+        """移除主题变化回调函数
+
+        Args:
+            callback: 要移除的回调函数
+        """
+        if callback in self._theme_changed_callbacks:
+            self._theme_changed_callbacks.remove(callback)
+
+    def _trigger_theme_changed_callbacks(self, theme_id: str) -> None:
+        """触发主题变化回调
+
+        Args:
+            theme_id: 主题ID
+        """
+        for callback in self._theme_changed_callbacks:
+            try:
+                callback(theme_id)
+            except Exception as e:
+                self._logger.error(f"主题变化回调执行失败: {e}")
 
     @classmethod
     def get_instance(cls) -> "ThemeManager":

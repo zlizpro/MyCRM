@@ -297,6 +297,62 @@ class TestFinanceService(unittest.TestCase):
         self.assertEqual(self.finance_service._determine_risk_level(50), "高风险")
         self.assertEqual(self.finance_service._determine_risk_level(30), "极高风险")
 
+    def test_get_total_receivables_success(self):
+        """测试获取应收账款总额成功"""
+        # 模拟DAO返回应收账款汇总
+        mock_summary = {"total_amount": 125000.50, "overdue_amount": 15000.00}
+        self.customer_dao.get_receivables_summary.return_value = mock_summary
+
+        # 执行测试
+        result = self.finance_service.get_total_receivables()
+
+        # 验证结果
+        self.assertEqual(result, 125000.50)
+        self.assertIsInstance(result, float)
+        self.customer_dao.get_receivables_summary.assert_called_once()
+
+    def test_get_total_receivables_zero(self):
+        """测试获取应收账款总额为零"""
+        # 模拟DAO返回零应收账款
+        mock_summary = {"total_amount": 0, "overdue_amount": 0}
+        self.customer_dao.get_receivables_summary.return_value = mock_summary
+
+        # 执行测试
+        result = self.finance_service.get_total_receivables()
+
+        # 验证结果
+        self.assertEqual(result, 0.0)
+        self.assertIsInstance(result, float)
+
+    def test_get_total_receivables_missing_data(self):
+        """测试获取应收账款总额时数据缺失"""
+        # 模拟DAO返回不完整数据
+        mock_summary = {}
+        self.customer_dao.get_receivables_summary.return_value = mock_summary
+
+        # 执行测试
+        result = self.finance_service.get_total_receivables()
+
+        # 验证结果（应该返回默认值0）
+        self.assertEqual(result, 0.0)
+        self.assertIsInstance(result, float)
+
+    def test_get_total_receivables_database_error(self):
+        """测试获取应收账款总额时数据库错误"""
+        from minicrm.core.exceptions import ServiceError
+
+        # 模拟数据库异常
+        self.customer_dao.get_receivables_summary.side_effect = Exception(
+            "数据库连接失败"
+        )
+
+        # 执行测试并验证异常
+        with self.assertRaises(ServiceError) as context:
+            self.finance_service.get_total_receivables()
+
+        # 验证异常信息
+        self.assertIn("获取应收账款总额失败", str(context.exception))
+
 
 if __name__ == "__main__":
     unittest.main()

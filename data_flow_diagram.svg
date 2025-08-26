@@ -1,0 +1,140 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600">
+  <!-- 背景 -->
+  <rect width="800" height="600" fill="#f8f9fa" />
+  
+  <!-- 标题 -->
+  <text x="400" y="30" font-family="Arial" font-size="24" text-anchor="middle" font-weight="bold">MiniCRM 数据流程图</text>
+  
+  <!-- 实体 -->
+  <!-- 用户 -->
+  <circle cx="100" cy="100" r="40" fill="#e6f7ff" stroke="#1890ff" stroke-width="2" />
+  <text x="100" y="105" font-family="Arial" font-size="14" text-anchor="middle">用户</text>
+  
+  <!-- UI层 -->
+  <rect x="200" y="80" width="120" height="60" rx="5" ry="5" fill="#e6f7ff" stroke="#1890ff" stroke-width="2" />
+  <text x="260" y="115" font-family="Arial" font-size="14" text-anchor="middle">UI层</text>
+  
+  <!-- 服务层 -->
+  <rect x="400" y="80" width="120" height="60" rx="5" ry="5" fill="#f6ffed" stroke="#52c41a" stroke-width="2" />
+  <text x="460" y="115" font-family="Arial" font-size="14" text-anchor="middle">服务层</text>
+  
+  <!-- 数据访问层 -->
+  <rect x="600" y="80" width="120" height="60" rx="5" ry="5" fill="#fff7e6" stroke="#fa8c16" stroke-width="2" />
+  <text x="660" y="115" font-family="Arial" font-size="14" text-anchor="middle">数据访问层</text>
+  
+  <!-- 数据库 -->
+  <path d="M 660,200 L 720,200 L 720,240 C 720,260 600,260 600,240 L 600,200 Z" fill="#f9f0ff" stroke="#722ed1" stroke-width="2" />
+  <text x="660" y="225" font-family="Arial" font-size="14" text-anchor="middle">数据库</text>
+  
+  <!-- Transfunctions -->
+  <rect x="400" y="300" width="120" height="60" rx="5" ry="5" fill="#fff2f0" stroke="#ff4d4f" stroke-width="2" />
+  <text x="460" y="335" font-family="Arial" font-size="14" text-anchor="middle">Transfunctions</text>
+  
+  <!-- 客户管理流程 -->
+  <text x="400" y="400" font-family="Arial" font-size="18" text-anchor="middle" font-weight="bold">客户管理流程</text>
+  
+  <!-- 流程步骤 -->
+  <!-- 1. 用户输入 -->
+  <rect x="50" y="430" width="120" height="30" rx="5" ry="5" fill="#e6f7ff" stroke="#1890ff" stroke-width="1" />
+  <text x="110" y="450" font-family="Arial" font-size="12" text-anchor="middle">1. 用户输入数据</text>
+  
+  <!-- 2. UI收集 -->
+  <rect x="190" y="430" width="120" height="30" rx="5" ry="5" fill="#e6f7ff" stroke="#1890ff" stroke-width="1" />
+  <text x="250" y="450" font-family="Arial" font-size="12" text-anchor="middle">2. UI收集数据</text>
+  
+  <!-- 3. 服务验证 -->
+  <rect x="330" y="430" width="140" height="30" rx="5" ry="5" fill="#f6ffed" stroke="#52c41a" stroke-width="1" />
+  <text x="400" y="450" font-family="Arial" font-size="12" text-anchor="middle">3. 服务层验证数据</text>
+  
+  <!-- 4. DAO保存 -->
+  <rect x="490" y="430" width="120" height="30" rx="5" ry="5" fill="#fff7e6" stroke="#fa8c16" stroke-width="1" />
+  <text x="550" y="450" font-family="Arial" font-size="12" text-anchor="middle">4. DAO保存数据</text>
+  
+  <!-- 5. 返回结果 -->
+  <rect x="630" y="430" width="120" height="30" rx="5" ry="5" fill="#f9f0ff" stroke="#722ed1" stroke-width="1" />
+  <text x="690" y="450" font-family="Arial" font-size="12" text-anchor="middle">5. 返回操作结果</text>
+  
+  <!-- 数据分析流程 -->
+  <text x="400" y="500" font-family="Arial" font-size="18" text-anchor="middle" font-weight="bold">数据分析流程</text>
+  
+  <!-- 分析流程步骤 -->
+  <!-- 1. 用户请求 -->
+  <rect x="50" y="530" width="120" height="30" rx="5" ry="5" fill="#e6f7ff" stroke="#1890ff" stroke-width="1" />
+  <text x="110" y="550" font-family="Arial" font-size="12" text-anchor="middle">1. 用户请求分析</text>
+  
+  <!-- 2. UI请求 -->
+  <rect x="190" y="530" width="120" height="30" rx="5" ry="5" fill="#e6f7ff" stroke="#1890ff" stroke-width="1" />
+  <text x="250" y="550" font-family="Arial" font-size="12" text-anchor="middle">2. UI请求服务</text>
+  
+  <!-- 3. 获取数据 -->
+  <rect x="330" y="530" width="140" height="30" rx="5" ry="5" fill="#f6ffed" stroke="#52c41a" stroke-width="1" />
+  <text x="400" y="550" font-family="Arial" font-size="12" text-anchor="middle">3. 服务层获取数据</text>
+  
+  <!-- 4. 处理数据 -->
+  <rect x="490" y="530" width="120" height="30" rx="5" ry="5" fill="#fff2f0" stroke="#ff4d4f" stroke-width="1" />
+  <text x="550" y="550" font-family="Arial" font-size="12" text-anchor="middle">4. 处理计算数据</text>
+  
+  <!-- 5. 可视化 -->
+  <rect x="630" y="530" width="120" height="30" rx="5" ry="5" fill="#e6f7ff" stroke="#1890ff" stroke-width="1" />
+  <text x="690" y="550" font-family="Arial" font-size="12" text-anchor="middle">5. UI可视化展示</text>
+  
+  <!-- 连接线 -->
+  <!-- 用户到UI -->
+  <line x1="140" y1="100" x2="200" y2="110" stroke="#1890ff" stroke-width="1.5" marker-end="url(#arrowhead)" />
+  <text x="170" y="95" font-family="Arial" font-size="10">输入</text>
+  
+  <!-- UI到服务层 -->
+  <line x1="320" y1="110" x2="400" y2="110" stroke="#1890ff" stroke-width="1.5" marker-end="url(#arrowhead)" />
+  <text x="360" y="100" font-family="Arial" font-size="10">请求</text>
+  
+  <!-- 服务层到数据访问层 -->
+  <line x1="520" y1="110" x2="600" y2="110" stroke="#52c41a" stroke-width="1.5" marker-end="url(#arrowhead)" />
+  <text x="560" y="100" font-family="Arial" font-size="10">调用</text>
+  
+  <!-- 数据访问层到数据库 -->
+  <line x1="660" y1="140" x2="660" y2="200" stroke="#fa8c16" stroke-width="1.5" marker-end="url(#arrowhead)" />
+  <text x="670" y="170" font-family="Arial" font-size="10">CRUD</text>
+  
+  <!-- 数据库到数据访问层 -->
+  <line x1="640" y1="200" x2="640" y2="140" stroke="#722ed1" stroke-width="1.5" marker-end="url(#arrowhead)" />
+  <text x="620" y="170" font-family="Arial" font-size="10">结果</text>
+  
+  <!-- 数据访问层到服务层 -->
+  <line x1="600" y1="90" x2="520" y2="90" stroke="#fa8c16" stroke-width="1.5" marker-end="url(#arrowhead)" />
+  <text x="560" y="80" font-family="Arial" font-size="10">返回</text>
+  
+  <!-- 服务层到UI层 -->
+  <line x1="400" y1="90" x2="320" y2="90" stroke="#52c41a" stroke-width="1.5" marker-end="url(#arrowhead)" />
+  <text x="360" y="80" font-family="Arial" font-size="10">响应</text>
+  
+  <!-- UI层到用户 -->
+  <line x1="200" y1="90" x2="140" y2="90" stroke="#1890ff" stroke-width="1.5" marker-end="url(#arrowhead)" />
+  <text x="170" y="80" font-family="Arial" font-size="10">显示</text>
+  
+  <!-- 服务层到Transfunctions -->
+  <line x1="460" y1="140" x2="460" y2="300" stroke="#52c41a" stroke-width="1.5" marker-end="url(#arrowhead)" />
+  <text x="470" y="220" font-family="Arial" font-size="10">使用</text>
+  
+  <!-- Transfunctions到服务层 -->
+  <line x1="440" y1="300" x2="440" y2="140" stroke="#ff4d4f" stroke-width="1.5" marker-end="url(#arrowhead)" />
+  <text x="420" y="220" font-family="Arial" font-size="10">返回</text>
+  
+  <!-- 客户管理流程连接线 -->
+  <line x1="170" y1="445" x2="190" y2="445" stroke="#1890ff" stroke-width="1.5" marker-end="url(#arrowhead)" />
+  <line x1="310" y1="445" x2="330" y2="445" stroke="#1890ff" stroke-width="1.5" marker-end="url(#arrowhead)" />
+  <line x1="470" y1="445" x2="490" y2="445" stroke="#52c41a" stroke-width="1.5" marker-end="url(#arrowhead)" />
+  <line x1="610" y1="445" x2="630" y2="445" stroke="#fa8c16" stroke-width="1.5" marker-end="url(#arrowhead)" />
+  
+  <!-- 数据分析流程连接线 -->
+  <line x1="170" y1="545" x2="190" y2="545" stroke="#1890ff" stroke-width="1.5" marker-end="url(#arrowhead)" />
+  <line x1="310" y1="545" x2="330" y2="545" stroke="#1890ff" stroke-width="1.5" marker-end="url(#arrowhead)" />
+  <line x1="470" y1="545" x2="490" y2="545" stroke="#52c41a" stroke-width="1.5" marker-end="url(#arrowhead)" />
+  <line x1="610" y1="545" x2="630" y2="545" stroke="#ff4d4f" stroke-width="1.5" marker-end="url(#arrowhead)" />
+  
+  <!-- 箭头定义 -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#000" />
+    </marker>
+  </defs>
+</svg>

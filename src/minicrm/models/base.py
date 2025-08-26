@@ -1,7 +1,6 @@
-"""
-MiniCRM 基础数据模型
+"""MiniCRM 基础数据模型
 
-定义了所有数据模型的基础类和通用功能，包括：
+定义了所有数据模型的基础类和通用功能,包括:
 - 基础模型类
 - 数据验证机制
 - 序列化和反序列化
@@ -15,11 +14,23 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, TypeVar
 
-from ..core import (
-    ValidationError,
-    clean_string,
-    format_date,
-)
+from typing_extensions import Self
+
+from ..core import ValidationError
+
+
+def clean_string(value: str) -> str:
+    """清理字符串字段
+
+    Args:
+        value: 要清理的字符串
+
+    Returns:
+        清理后的字符串
+    """
+    if not isinstance(value, str):
+        return str(value) if value is not None else ""
+    return value.strip()
 
 
 # 泛型类型变量
@@ -37,11 +48,10 @@ class ModelStatus(Enum):
 
 @dataclass
 class BaseModel(ABC):
-    """
-    基础数据模型类
+    """基础数据模型类
 
-    所有业务模型都应该继承自这个基础类。
-    提供通用的字段、验证和序列化功能。
+    所有业务模型都应该继承自这个基础类.
+    提供通用的字段、验证和序列化功能.
     """
 
     # 基础字段
@@ -72,20 +82,17 @@ class BaseModel(ABC):
 
     @abstractmethod
     def validate(self) -> None:
-        """
-        验证模型数据
+        """验证模型数据
 
-        子类必须实现此方法来定义特定的验证规则。
-        如果验证失败，应该抛出ValidationError异常。
+        子类必须实现此方法来定义特定的验证规则.
+        如果验证失败,应该抛出ValidationError异常.
 
         Raises:
             ValidationError: 当数据验证失败时
         """
-        pass
 
     def is_valid(self) -> bool:
-        """
-        检查模型数据是否有效
+        """检查模型数据是否有效
 
         Returns:
             bool: 数据是否有效
@@ -115,11 +122,10 @@ class BaseModel(ABC):
         return self.status == ModelStatus.ACTIVE
 
     def to_dict(self, include_private: bool = False) -> dict[str, Any]:
-        """
-        将模型转换为字典
+        """将模型转换为字典
 
         Args:
-            include_private: 是否包含私有字段（以_开头的字段）
+            include_private: 是否包含私有字段(以_开头的字段)
 
         Returns:
             Dict[str, Any]: 模型数据字典
@@ -127,7 +133,7 @@ class BaseModel(ABC):
         result = {}
 
         for key, value in self.__dict__.items():
-            # 跳过私有字段（除非明确要求包含）
+            # 跳过私有字段(除非明确要求包含)
             if not include_private and key.startswith("_"):
                 continue
 
@@ -144,9 +150,8 @@ class BaseModel(ABC):
         return result
 
     @classmethod
-    def from_dict(cls: type[T], data: dict[str, Any]) -> T:
-        """
-        从字典创建模型实例
+    def from_dict(cls, data: dict[str, Any]) -> Self:
+        """从字典创建模型实例
 
         Args:
             data: 数据字典
@@ -157,8 +162,19 @@ class BaseModel(ABC):
         Raises:
             ValidationError: 当数据无效时
         """
-        # 过滤掉不存在的字段
-        valid_fields = {key: value for key, value in data.items() if hasattr(cls, key)}
+        # 获取dataclass字段名
+        import dataclasses
+
+        if dataclasses.is_dataclass(cls):
+            field_names = {field.name for field in dataclasses.fields(cls)}
+            valid_fields = {
+                key: value for key, value in data.items() if key in field_names
+            }
+        else:
+            # 过滤掉不存在的字段
+            valid_fields = {
+                key: value for key, value in data.items() if hasattr(cls, key)
+            }
 
         # 处理特殊字段类型
         if "created_at" in valid_fields and isinstance(valid_fields["created_at"], str):
@@ -185,9 +201,8 @@ class BaseModel(ABC):
 
         return cls(**valid_fields)
 
-    def copy(self: T, **changes: Any) -> T:
-        """
-        创建模型的副本
+    def copy(self, **changes: Any) -> Self:
+        """创建模型的副本
 
         Args:
             **changes: 要修改的字段
@@ -198,7 +213,7 @@ class BaseModel(ABC):
         data = self.to_dict()
         data.update(changes)
 
-        # 重置ID和时间戳（创建新实例）
+        # 重置ID和时间戳(创建新实例)
         data["id"] = None
         data["created_at"] = None
         data["updated_at"] = None
@@ -211,8 +226,7 @@ class BaseModel(ABC):
         class_name = self.__class__.__name__
         if hasattr(self, "name") and self.name:
             return f"{class_name}(id={self.id}, name='{self.name}')"
-        else:
-            return f"{class_name}(id={self.id})"
+        return f"{class_name}(id={self.id})"
 
     def __repr__(self) -> str:
         """返回模型的详细表示"""
@@ -231,10 +245,9 @@ class BaseModel(ABC):
 
 @dataclass
 class NamedModel(BaseModel):
-    """
-    带名称的基础模型
+    """带名称的基础模型
 
-    为需要名称字段的模型提供基础实现。
+    为需要名称字段的模型提供基础实现.
     """
 
     name: str = ""
@@ -259,10 +272,9 @@ class NamedModel(BaseModel):
 
 @dataclass
 class ContactModel(NamedModel):
-    """
-    联系信息基础模型
+    """联系信息基础模型
 
-    为需要联系信息的模型提供基础实现。
+    为需要联系信息的模型提供基础实现.
     """
 
     phone: str = ""
@@ -284,28 +296,26 @@ class ContactModel(NamedModel):
         """验证联系信息"""
         super().validate()
 
-        # 验证邮箱格式（如果提供了邮箱）
+        # 验证邮箱格式(如果提供了邮箱)
         if self.email and ("@" not in self.email or "." not in self.email):
             raise ValidationError("邮箱格式不正确")
 
-        # 验证手机号格式（如果提供了手机号）
+        # 验证手机号格式(如果提供了手机号)
         if self.phone and len(self.phone) < 11:
             raise ValidationError("手机号格式不正确")
 
 
 class ModelRegistry:
-    """
-    模型注册表
+    """模型注册表
 
-    管理所有已注册的模型类，提供模型发现和实例化功能。
+    管理所有已注册的模型类,提供模型发现和实例化功能.
     """
 
     _models: dict[str, type[BaseModel]] = {}
 
     @classmethod
     def register(cls, model_class: type[BaseModel]) -> None:
-        """
-        注册模型类
+        """注册模型类
 
         Args:
             model_class: 要注册的模型类
@@ -314,8 +324,7 @@ class ModelRegistry:
 
     @classmethod
     def get_model(cls, name: str) -> type[BaseModel] | None:
-        """
-        获取模型类
+        """获取模型类
 
         Args:
             name: 模型类名
@@ -327,8 +336,7 @@ class ModelRegistry:
 
     @classmethod
     def get_all_models(cls) -> dict[str, type[BaseModel]]:
-        """
-        获取所有已注册的模型
+        """获取所有已注册的模型
 
         Returns:
             Dict[str, Type[BaseModel]]: 模型名称到模型类的映射
@@ -337,8 +345,7 @@ class ModelRegistry:
 
     @classmethod
     def create_instance(cls, name: str, data: dict[str, Any]) -> BaseModel | None:
-        """
-        创建模型实例
+        """创建模型实例
 
         Args:
             name: 模型类名
@@ -355,8 +362,7 @@ class ModelRegistry:
 
 # 模型装饰器
 def register_model(model_class: type[BaseModel]) -> type[BaseModel]:
-    """
-    模型注册装饰器
+    """模型注册装饰器
 
     Args:
         model_class: 要注册的模型类

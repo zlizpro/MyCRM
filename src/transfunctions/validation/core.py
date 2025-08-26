@@ -1,12 +1,13 @@
 """
 Transfunctions - 核心验证函数
 
-提供基础的数据验证功能，包括邮箱、电话等通用验证。
+提供基础的数据验证功能,包括邮箱、电话等通用验证.
 """
 
 import logging
 import re
 from datetime import datetime
+
 
 # 配置日志
 logger = logging.getLogger(__name__)
@@ -20,7 +21,7 @@ class ValidationError(Exception):
 
         Args:
             message: 错误消息
-            field: 出错的字段名（可选）
+            field: 出错的字段名(可选)
         """
         self.message = message
         self.field = field
@@ -78,7 +79,7 @@ def validate_phone(
 
     Args:
         phone: 电话号码字符串
-        phone_type: 电话类型，"mobile"（手机）或"landline"（固话）
+        phone_type: 电话类型,"mobile"(手机)或"landline"(固话)
         raise_exception: 是否在验证失败时抛出异常
 
     Returns:
@@ -98,7 +99,7 @@ def validate_phone(
             raise ValidationError("电话号码不能为空", "phone")
         return False
 
-    # 清理电话号码（移除空格、横线等）
+    # 清理电话号码(移除空格、横线等)
     clean_phone = re.sub(r"[\s\-\(\)]", "", phone)
 
     # 常用正则表达式模式
@@ -112,11 +113,11 @@ def validate_phone(
     if phone_type == "mobile":
         is_valid = bool(re.match(patterns["mobile_phone"], clean_phone))
         if not is_valid and raise_exception:
-            raise ValidationError("手机号码格式不正确，应为11位数字且以1开头", "phone")
+            raise ValidationError("手机号码格式不正确,应为11位数字且以1开头", "phone")
     elif phone_type == "landline":
         is_valid = bool(re.match(patterns["landline_phone"], phone))
         if not is_valid and raise_exception:
-            raise ValidationError("固定电话格式不正确，应为区号-号码格式", "phone")
+            raise ValidationError("固定电话格式不正确,应为区号-号码格式", "phone")
     else:
         # 尝试匹配手机或固话
         is_valid = bool(re.match(patterns["mobile_phone"], clean_phone)) or bool(

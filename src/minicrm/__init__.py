@@ -1,30 +1,48 @@
-"""MiniCRM - 现代化模块化CRM系统
+"""MiniCRM - 客户关系管理系统
 
-这是一个基于PySide6的现代化CRM系统，专为板材行业设计。
-系统采用模块化架构，集成了transfunctions可复用函数库。
+一个基于Python和tkinter/ttk的跨平台客户关系管理应用程序,
+专为板材行业设计,支持客户管理、供应商管理、报价比对等功能.
 
-主要功能：
-- 客户信息管理
-- 供应商管理
-- 报价比对
-- 合同管理
-- 售后跟踪
-- 数据分析和报表
-
-技术栈：
-- GUI: PySide6
-- 数据库: SQLite
-- 文档处理: docxtpl, reportlab
-- 图表: matplotlib
+版本: 1.0.0
+作者: MiniCRM开发团队
 """
 
-__version__ = "0.1.0"
-__author__ = "MiniCRM Team"
-__email__ = "team@minicrm.com"
+__version__ = "1.0.0"
+__author__ = "MiniCRM开发团队"
+__description__ = "跨平台客户关系管理系统"
 
-# 导出主要组件
+# 导出核心模块
+from .core.constants import (
+    ContractStatus,
+    CustomerLevel,
+    InteractionType,
+    QuoteStatus,
+    ServiceTicketStatus,
+    SupplierLevel,
+)
+from .core.exceptions import (
+    BusinessLogicError,
+    ConfigurationError,
+    DatabaseError,
+    MiniCRMError,
+    UIError,
+    ValidationError,
+)
+
+
 __all__ = [
-    "__version__",
-    "__author__",
-    "__email__",
+    # 异常类
+    "MiniCRMError",
+    "ValidationError",
+    "DatabaseError",
+    "BusinessLogicError",
+    "ConfigurationError",
+    "UIError",
+    # 枚举常量
+    "CustomerLevel",
+    "SupplierLevel",
+    "InteractionType",
+    "ContractStatus",
+    "QuoteStatus",
+    "ServiceTicketStatus",
 ]

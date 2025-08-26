@@ -1,7 +1,7 @@
 """
 MiniCRM 依赖注入容器
 
-提供依赖注入功能，确保：
+提供依赖注入功能,确保:
 - 松耦合的架构设计
 - 易于测试和扩展
 - 统一的依赖管理
@@ -13,6 +13,7 @@ from typing import Any, TypeVar
 
 from minicrm.core.exceptions import DependencyError
 
+
 T = TypeVar("T")
 
 
@@ -20,7 +21,7 @@ class DIContainer:
     """
     依赖注入容器
 
-    管理系统中所有组件的依赖关系，支持：
+    管理系统中所有组件的依赖关系,支持:
     - 单例模式
     - 工厂模式
     - 接口绑定
@@ -49,7 +50,7 @@ class DIContainer:
 
     def register_transient(self, interface: type[T], implementation: type[T]) -> None:
         """
-        注册瞬态服务（每次创建新实例）
+        注册瞬态服务(每次创建新实例)
 
         Args:
             interface: 接口类型
@@ -116,7 +117,7 @@ class DIContainer:
                 self._singletons[key] = instance
                 return instance
 
-            raise DependencyError(f"未找到接口的实现: {interface}") from e
+            raise DependencyError(f"未找到接口的实现: {interface}")
 
         except Exception as e:
             self._logger.error(f"依赖解析失败: {interface}, 错误: {e}")
@@ -135,19 +136,37 @@ class DIContainer:
         try:
             # 获取构造函数参数
             import inspect
+            from typing import get_type_hints
 
             signature = inspect.signature(implementation.__init__)
-            parameters = signature.parameters
+
+            # 使用get_type_hints来正确处理字符串类型注解
+            try:
+                type_hints = get_type_hints(implementation.__init__)
+            except (NameError, AttributeError):
+                # 如果无法获取类型提示,则使用原始的annotation
+                type_hints = {}
+                for param_name, param in signature.parameters.items():
+                    if param.annotation != inspect.Parameter.empty:
+                        type_hints[param_name] = param.annotation
 
             # 解析构造函数依赖
             kwargs = {}
-            for param_name, param in parameters.items():
+            for param_name, param in signature.parameters.items():
                 if param_name == "self":
                     continue
 
-                if param.annotation != inspect.Parameter.empty:
+                # 优先使用type_hints,fallback到原始annotation
+                param_type = type_hints.get(param_name, param.annotation)
+
+                if param_type != inspect.Parameter.empty and param_type is not None:
+                    # 跳过字符串类型的注解,如果无法解析
+                    if isinstance(param_type, str):
+                        self._logger.warning(f"跳过字符串类型注解: {param_name}: {param_type}")
+                        continue
+
                     # 递归解析依赖
-                    dependency = self.resolve(param.annotation)
+                    dependency = self.resolve(param_type)
                     kwargs[param_name] = dependency
 
             return implementation(**kwargs)
@@ -198,7 +217,7 @@ def configure_dependencies():
     """
     配置系统依赖关系
 
-    确保依赖方向正确：UI → Services → Data → Models
+    确保依赖方向正确:UI → Services → Data → Models
     """
     from minicrm.core.interfaces.dao_interfaces import (
         ICustomerDAO,
@@ -216,14 +235,14 @@ def configure_dependencies():
     from minicrm.services.customer_service import CustomerService
     from minicrm.services.supplier_service import SupplierService
 
-    # 注册数据库管理器（最底层）
+    # 注册数据库管理器(最底层)
     container.register_singleton(DatabaseManager, DatabaseManager)
 
-    # 注册DAO层（依赖DatabaseManager）
+    # 注册DAO层(依赖DatabaseManager)
     container.register_singleton(ICustomerDAO, CustomerDAO)
     container.register_singleton(ISupplierDAO, SupplierDAO)
 
-    # 注册Service层（依赖DAO层）
+    # 注册Service层(依赖DAO层)
     container.register_singleton(ICustomerService, CustomerService)
     container.register_singleton(ISupplierService, SupplierService)
     container.register_singleton(IAnalyticsService, AnalyticsService)

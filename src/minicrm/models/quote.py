@@ -1,14 +1,13 @@
-"""
-MiniCRM 报价数据模型
+"""MiniCRM 报价数据模型
 
-定义报价相关的数据结构和业务逻辑，包括：
+定义报价相关的数据结构和业务逻辑,包括:
 - 报价基本信息模型
 - 报价项目和产品清单
 - 报价状态和历史管理
 - 数据验证和格式化
 - 与transfunctions的集成
 
-设计原则：
+设计原则:
 - 使用dataclass简化模型定义
 - 支持多产品报价和历史比对
 - 提供报价计算和格式化功能
@@ -42,6 +41,7 @@ class QuoteStatus(Enum):
     REJECTED = "rejected"  # 已拒绝
     EXPIRED = "expired"  # 已过期
     CONVERTED = "converted"  # 已转换为订单
+    CANCELLED = "cancelled"  # 已取消
 
 
 class QuoteType(Enum):
@@ -56,8 +56,7 @@ class QuoteType(Enum):
 
 @dataclass
 class QuoteItem:
-    """
-    报价项目数据类
+    """报价项目数据类
 
     表示报价中的单个产品或服务项目
     """
@@ -66,7 +65,7 @@ class QuoteItem:
     product_code: str = ""  # 产品编码
     specification: str = ""  # 规格说明
     unit: str = "件"  # 单位
-    quantity: Decimal = Decimal("1")  # 数量
+    quantity: Decimal = Decimal(1)  # 数量
     unit_price: Decimal = Decimal("0.00")  # 单价
     discount_rate: float = 0.0  # 折扣率 (0-1)
     tax_rate: float = 0.13  # 税率 (默认13%)
@@ -99,7 +98,7 @@ class QuoteItem:
             raise ValidationError("税率必须在0-1之间")
 
     def get_subtotal(self) -> Decimal:
-        """计算小计金额（不含税）"""
+        """计算小计金额(不含税)"""
         return self.quantity * self.unit_price * Decimal(str(1 - self.discount_rate))
 
     def get_tax_amount(self) -> Decimal:
@@ -107,7 +106,7 @@ class QuoteItem:
         return self.get_subtotal() * Decimal(str(self.tax_rate))
 
     def get_total(self) -> Decimal:
-        """计算总金额（含税）"""
+        """计算总金额(含税)"""
         return self.get_subtotal() + self.get_tax_amount()
 
     def get_formatted_unit_price(self) -> str:
@@ -159,11 +158,10 @@ class QuoteItem:
 @register_model
 @dataclass
 class Quote(NamedModel):
-    """
-    报价数据模型
+    """报价数据模型
 
-    继承自NamedModel，包含报价的完整信息，包括基本信息、
-    报价项目、状态管理、历史记录等。
+    继承自NamedModel,包含报价的完整信息,包括基本信息、
+    报价项目、状态管理、历史记录等.
     """
 
     # 报价基本信息
@@ -196,7 +194,7 @@ class Quote(NamedModel):
     validity_days: int = 30  # 有效期天数
 
     # 历史和版本
-    parent_quote_id: int | None = None  # 父报价ID（用于修订版本）
+    parent_quote_id: int | None = None  # 父报价ID(用于修订版本)
     version: int = 1  # 版本号
     revision_reason: str = ""  # 修订原因
 
@@ -218,15 +216,15 @@ class Quote(NamedModel):
         self.delivery_terms = self.delivery_terms.strip()
         self.revision_reason = self.revision_reason.strip()
 
-        # 生成报价编号（如果未提供）
+        # 生成报价编号(如果未提供)
         if not self.quote_number:
             self.quote_number = self._generate_quote_number()
 
-        # 设置报价日期（如果未提供）
+        # 设置报价日期(如果未提供)
         if not self.quote_date:
             self.quote_date = datetime.now()
 
-        # 设置有效期（如果未提供）
+        # 设置有效期(如果未提供)
         if not self.valid_until and self.quote_date:
             self.valid_until = self.quote_date + timedelta(days=self.validity_days)
 
@@ -316,15 +314,15 @@ class Quote(NamedModel):
             self.tax_amount = totals["tax_amount"]
             self.total_amount = totals["total_amount"]
         except Exception:
-            # 如果transfunctions计算失败，使用本地计算
+            # 如果transfunctions计算失败,使用本地计算
             self.subtotal_amount = sum(
-                (item.get_subtotal() for item in self.items), Decimal("0")
+                (item.get_subtotal() for item in self.items), Decimal(0)
             )
             self.tax_amount = sum(
-                (item.get_tax_amount() for item in self.items), Decimal("0")
+                (item.get_tax_amount() for item in self.items), Decimal(0)
             )
             self.total_amount = sum(
-                (item.get_total() for item in self.items), Decimal("0")
+                (item.get_total() for item in self.items), Decimal(0)
             )
 
     def is_expired(self) -> bool:
@@ -334,11 +332,10 @@ class Quote(NamedModel):
         return datetime.now() > self.valid_until
 
     def is_expiring_soon(self, days_threshold: int = 3) -> bool:
-        """
-        检查报价是否即将过期
+        """检查报价是否即将过期
 
         Args:
-            days_threshold: 过期预警阈值（天）
+            days_threshold: 过期预警阈值(天)
 
         Returns:
             bool: 是否即将过期
@@ -358,11 +355,10 @@ class Quote(NamedModel):
         return max(0, remaining)
 
     def send_quote(self, send_date: datetime | None = None) -> None:
-        """
-        发送报价
+        """发送报价
 
         Args:
-            send_date: 发送日期，默认为当前时间
+            send_date: 发送日期,默认为当前时间
         """
         if self.quote_status != QuoteStatus.PENDING:
             self.quote_status = QuoteStatus.PENDING
@@ -372,11 +368,10 @@ class Quote(NamedModel):
         self.update_timestamp()
 
     def mark_as_viewed(self, view_date: datetime | None = None) -> None:
-        """
-        标记为已查看
+        """标记为已查看
 
         Args:
-            view_date: 查看日期，默认为当前时间
+            view_date: 查看日期,默认为当前时间
         """
         if self.quote_status == QuoteStatus.SENT:
             self.quote_status = QuoteStatus.VIEWED
@@ -385,11 +380,10 @@ class Quote(NamedModel):
             self.update_timestamp()
 
     def accept_quote(self, response_date: datetime | None = None) -> None:
-        """
-        接受报价
+        """接受报价
 
         Args:
-            response_date: 响应日期，默认为当前时间
+            response_date: 响应日期,默认为当前时间
         """
         if self.quote_status in [QuoteStatus.SENT, QuoteStatus.VIEWED]:
             self.quote_status = QuoteStatus.ACCEPTED
@@ -399,11 +393,10 @@ class Quote(NamedModel):
     def reject_quote(
         self, response_date: datetime | None = None, reason: str = ""
     ) -> None:
-        """
-        拒绝报价
+        """拒绝报价
 
         Args:
-            response_date: 响应日期，默认为当前时间
+            response_date: 响应日期,默认为当前时间
             reason: 拒绝原因
         """
         if self.quote_status in [QuoteStatus.SENT, QuoteStatus.VIEWED]:
@@ -414,8 +407,7 @@ class Quote(NamedModel):
             self.update_timestamp()
 
     def convert_to_order(self, order_id: int) -> None:
-        """
-        转换为订单
+        """转换为订单
 
         Args:
             order_id: 订单ID
@@ -429,8 +421,7 @@ class Quote(NamedModel):
         self.update_timestamp()
 
     def create_revision(self, reason: str = "") -> "Quote":
-        """
-        创建修订版本
+        """创建修订版本
 
         Args:
             reason: 修订原因
@@ -484,11 +475,12 @@ class Quote(NamedModel):
             QuoteStatus.REJECTED: "已拒绝",
             QuoteStatus.EXPIRED: "已过期",
             QuoteStatus.CONVERTED: "已转换",
+            QuoteStatus.CANCELLED: "已取消",
         }
         return status_map.get(self.quote_status, "未知")
 
     def to_dict(self, include_private: bool = False) -> dict[str, Any]:
-        """转换为字典，包含格式化的字段"""
+        """转换为字典,包含格式化的字段"""
         data = super().to_dict(include_private)
 
         # 添加报价项目
@@ -516,6 +508,17 @@ class Quote(NamedModel):
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> "Quote":
         """从字典创建报价实例"""
+        # 创建数据副本以避免修改原始数据
+        data = data.copy()
+
+        # 移除不存在的字段(如is_expired等计算字段)
+        valid_fields = {field.name for field in cls.__dataclass_fields__.values()}
+        # 添加继承的字段
+        valid_fields.update(["id", "name", "notes", "created_at", "updated_at"])
+
+        # 过滤掉无效字段
+        filtered_data = {k: v for k, v in data.items() if k in valid_fields}
+
         # 处理枚举字段
         enum_fields = {
             "quote_type": (QuoteType, QuoteType.STANDARD),
@@ -523,40 +526,40 @@ class Quote(NamedModel):
         }
 
         for field, (enum_class, default_value) in enum_fields.items():
-            if field in data and isinstance(data[field], str):
+            if field in filtered_data and isinstance(filtered_data[field], str):
                 try:
-                    data[field] = enum_class(data[field])
+                    filtered_data[field] = enum_class(filtered_data[field])
                 except ValueError:
-                    data[field] = default_value
+                    filtered_data[field] = default_value
 
         # 处理Decimal字段
         for field in ["subtotal_amount", "tax_amount", "total_amount"]:
-            if field in data and not isinstance(data[field], Decimal):
+            if field in filtered_data and not isinstance(filtered_data[field], Decimal):
                 try:
-                    data[field] = Decimal(str(data[field]))
+                    filtered_data[field] = Decimal(str(filtered_data[field]))
                 except (ValueError, TypeError):
-                    data[field] = Decimal("0.00")
+                    filtered_data[field] = Decimal("0.00")
 
         # 处理日期字段
         date_fields = ["quote_date", "valid_until", "sent_date", "response_date"]
         for field in date_fields:
-            if field in data and isinstance(data[field], str):
+            if field in filtered_data and isinstance(filtered_data[field], str):
                 try:
-                    data[field] = datetime.fromisoformat(data[field])
+                    filtered_data[field] = datetime.fromisoformat(filtered_data[field])
                 except ValueError:
-                    data[field] = None
+                    filtered_data[field] = None
 
         # 处理报价项目列表
-        if "items" in data:
-            if isinstance(data["items"], list):
-                data["items"] = [
+        if "items" in filtered_data:
+            if isinstance(filtered_data["items"], list):
+                filtered_data["items"] = [
                     QuoteItem.from_dict(item) if isinstance(item, dict) else item
-                    for item in data["items"]
+                    for item in filtered_data["items"]
                 ]
             else:
-                data["items"] = []
+                filtered_data["items"] = []
 
-        return super().from_dict(data)
+        return super().from_dict(filtered_data)
 
     def __str__(self) -> str:
         """返回报价的字符串表示"""

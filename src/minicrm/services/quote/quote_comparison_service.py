@@ -1,7 +1,7 @@
 """
 MiniCRM 报价比对分析服务
 
-专门负责报价比对和分析功能，从原始quote_service.py中提取。
+专门负责报价比对和分析功能,从原始quote_service.py中提取.
 """
 
 from datetime import datetime
@@ -20,7 +20,7 @@ class QuoteComparisonService(BaseService):
     """
     报价比对分析服务
 
-    专门负责报价比对、分析和趋势计算。
+    专门负责报价比对、分析和趋势计算.
     """
 
     def __init__(self, quote_core_service=None):
@@ -114,11 +114,25 @@ class QuoteComparisonService(BaseService):
         # 计算产品价格统计
         product_analysis = self._generate_product_analysis(all_products)
 
+        # 生成趋势分析
+        trend_analysis = self._compare_quotes_trend(quotes)
+
+        # 生成智能建议
+        intelligent_suggestions = self._generate_intelligent_suggestions(
+            quotes, product_analysis
+        )
+
+        # 计算竞争力分析
+        competitiveness_analysis = self._analyze_quote_competitiveness(quotes)
+
         return {
             "comparison_type": "detailed",
             "quote_count": len(quotes),
             "quotes": self._compare_quotes_summary(quotes)["quotes"],
             "product_analysis": product_analysis,
+            "trend_analysis": trend_analysis.get("overall_trend", {}),
+            "intelligent_suggestions": intelligent_suggestions,
+            "competitiveness_analysis": competitiveness_analysis,
             "summary": self._compare_quotes_summary(quotes)["statistics"],
         }
 
@@ -373,7 +387,7 @@ class QuoteComparisonService(BaseService):
         amounts = [float(quote.total_amount) for quote in quotes]
         trend = self._calculate_amount_trend(amounts)
 
-        # 计算平均响应时间（如果有发送和接受时间）
+        # 计算平均响应时间(如果有发送和接受时间)
         response_times: list[float] = []
         for quote in quotes:
             if (
@@ -405,7 +419,7 @@ class QuoteComparisonService(BaseService):
         if len(amounts) < 2:
             return "无趋势"
 
-        # 简单的趋势计算：比较前半部分和后半部分的平均值
+        # 简单的趋势计算:比较前半部分和后半部分的平均值
         mid = len(amounts) // 2
         first_half_avg = calculate_average(amounts[:mid])
         second_half_avg = calculate_average(amounts[mid:])
@@ -429,3 +443,210 @@ class QuoteComparisonService(BaseService):
             status: {"count": count, "percentage": f"{(count / total * 100):.1f}%"}
             for status, count in status_count.items()
         }
+
+    def _generate_intelligent_suggestions(
+        self, quotes: list[Quote], product_analysis: list[dict[str, Any]]
+    ) -> dict[str, Any]:
+        """生成智能建议"""
+        suggestions: dict[str, list[dict[str, str]]] = {
+            "pricing_strategy": [],
+            "product_optimization": [],
+            "market_insights": [],
+            "risk_warnings": [],
+        }
+
+        # 价格策略建议
+        amounts = [float(quote.total_amount) for quote in quotes]
+        if len(amounts) >= 2:
+            recent_trend = self._calculate_amount_trend(
+                amounts[-3:] if len(amounts) >= 3 else amounts
+            )
+
+            if recent_trend == "上升":
+                suggestions["pricing_strategy"].append(
+                    {
+                        "type": "价格上升趋势",
+                        "suggestion": (
+                            "报价呈上升趋势,可能反映了产品价值提升或市场需求增长,"
+                            "建议保持当前定价策略"
+                        ),
+                        "priority": "中等",
+                    }
+                )
+            elif recent_trend == "下降":
+                suggestions["pricing_strategy"].append(
+                    {
+                        "type": "价格下降趋势",
+                        "suggestion": (
+                            "报价呈下降趋势,建议分析成本结构和竞争环境,"
+                            "考虑价值重新定位"
+                        ),
+                        "priority": "高",
+                    }
+                )
+
+        # 产品优化建议
+        if product_analysis:
+            # 找出价格波动最大的产品
+            max_variance_product = max(
+                product_analysis,
+                key=lambda x: float(
+                    x.get("statistics", {})
+                    .get("price_variance", "0")
+                    .replace("¥", "")
+                    .replace(",", "")
+                    or "0"
+                ),
+            )
+
+            suggestions["product_optimization"].append(
+                {
+                    "type": "价格波动分析",
+                    "suggestion": (
+                        f"{max_variance_product.get('product_name', '未知产品')} "
+                        "价格波动较大,建议制定更稳定的定价策略"
+                    ),
+                    "priority": "中等",
+                }
+            )
+
+        # 市场洞察
+        success_quotes = [
+            q
+            for q in quotes
+            if q.quote_status and q.quote_status.value in ["accepted", "converted"]
+        ]
+        success_rate = (len(success_quotes) / len(quotes)) * 100 if quotes else 0
+
+        if success_rate > 70:
+            suggestions["market_insights"].append(
+                {
+                    "type": "高成功率",
+                    "suggestion": (
+                        f"报价成功率达到 {success_rate:.1f}%,"
+                        "表明定价策略与市场需求匹配度较高"
+                    ),
+                    "priority": "低",
+                }
+            )
+        elif success_rate < 30:
+            suggestions["market_insights"].append(
+                {
+                    "type": "低成功率",
+                    "suggestion": (
+                        f"报价成功率仅为 {success_rate:.1f}%,"
+                        "建议重新评估定价策略和产品竞争力"
+                    ),
+                    "priority": "高",
+                }
+            )
+
+        # 风险预警
+        if len(amounts) >= 3:
+            recent_amounts = amounts[-3:]
+            if all(
+                recent_amounts[i] < recent_amounts[i - 1]
+                for i in range(1, len(recent_amounts))
+            ):
+                suggestions["risk_warnings"].append(
+                    {
+                        "type": "连续降价风险",
+                        "suggestion": (
+                            "最近3次报价呈连续下降趋势,可能影响利润率,"
+                            "建议评估成本和市场定位"
+                        ),
+                        "priority": "高",
+                    }
+                )
+
+        return suggestions
+
+    def _analyze_quote_competitiveness(self, quotes: list[Quote]) -> dict[str, Any]:
+        """分析报价竞争力"""
+        if len(quotes) < 2:
+            return {"analysis": "数据不足,需要至少2个报价进行竞争力分析"}
+
+        amounts = [float(quote.total_amount) for quote in quotes]
+        avg_amount = calculate_average(amounts)
+
+        # 计算每个报价相对于平均值的竞争力
+        competitiveness_scores = []
+        for quote in quotes:
+            amount = float(quote.total_amount)
+            # 价格越低,竞争力越高(简化模型)
+            # 防止除零错误
+            if avg_amount > 0:
+                competitiveness = max(0, (avg_amount - amount) / avg_amount * 100 + 50)
+            else:
+                competitiveness = 50  # 默认中等竞争力
+
+            competitiveness_scores.append(
+                {
+                    "quote_id": quote.id,
+                    "quote_number": quote.quote_number,
+                    "amount": amount,
+                    "formatted_amount": format_currency(amount),
+                    "competitiveness_score": round(competitiveness, 1),
+                    "competitiveness_level": self._get_competitiveness_level(
+                        competitiveness
+                    ),
+                }
+            )
+
+        # 排序(按竞争力得分降序)
+        competitiveness_scores.sort(
+            key=lambda x: float(x["competitiveness_score"])
+            if x["competitiveness_score"] is not None
+            else 0.0,
+            reverse=True,
+        )
+
+        return {
+            "analysis": "基于价格的竞争力分析",
+            "average_amount": format_currency(avg_amount),
+            "competitiveness_ranking": competitiveness_scores,
+            "insights": self._generate_competitiveness_insights(competitiveness_scores),
+        }
+
+    def _get_competitiveness_level(self, score: float) -> str:
+        """获取竞争力等级"""
+        if score >= 80:
+            return "极强"
+        elif score >= 60:
+            return "较强"
+        elif score >= 40:
+            return "一般"
+        elif score >= 20:
+            return "较弱"
+        else:
+            return "很弱"
+
+    def _generate_competitiveness_insights(self, scores: list[dict]) -> list[str]:
+        """生成竞争力洞察"""
+        insights = []
+
+        if scores:
+            best_quote = scores[0]
+            worst_quote = scores[-1]
+
+            insights.append(
+                f"最具竞争力的报价是 {best_quote['quote_number']},"
+                f"竞争力得分 {best_quote['competitiveness_score']}"
+            )
+
+            if len(scores) > 1:
+                insights.append(
+                    f"竞争力最弱的报价是 {worst_quote['quote_number']},"
+                    f"竞争力得分 {worst_quote['competitiveness_score']}"
+                )
+
+                score_diff = (
+                    best_quote["competitiveness_score"]
+                    - worst_quote["competitiveness_score"]
+                )
+                if score_diff > 40:
+                    insights.append("报价间竞争力差异较大,建议统一定价策略")
+                elif score_diff < 10:
+                    insights.append("报价竞争力相对均衡,定价策略一致性较好")
+
+        return insights

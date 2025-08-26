@@ -1,7 +1,7 @@
 """
 MiniCRM 数据库初始化器
 
-负责插入初始数据和配置。
+负责插入初始数据和配置.
 """
 
 import sqlite3
@@ -14,7 +14,7 @@ class DatabaseInitializer:
     """
     数据库初始化器
 
-    负责插入系统运行所需的初始数据。
+    负责插入系统运行所需的初始数据.
     """
 
     def __init__(self, connection: sqlite3.Connection):
@@ -32,6 +32,9 @@ class DatabaseInitializer:
             self._insert_customer_types()
             self._insert_quote_statuses()
             self._insert_interaction_types()
+
+            # 插入示例数据,确保供应商面板有数据显示
+            self.insert_sample_data()
 
         except Exception as e:
             raise DatabaseError(f"插入初始数据失败: {e}") from e
@@ -115,7 +118,7 @@ class DatabaseInitializer:
                 )
 
     def insert_sample_data(self) -> None:
-        """插入示例数据（用于开发和测试）"""
+        """插入示例数据(用于开发和测试)"""
         try:
             self._insert_sample_customers()
             self._insert_sample_suppliers()
@@ -142,7 +145,7 @@ class DatabaseInitializer:
                 "address": "上海市浦东新区张江高科技园区",
                 "customer_type_id": customer_type_ids.get("生态板客户"),
                 "contact_person": "张经理",
-                "notes": "长期合作客户，信誉良好",
+                "notes": "长期合作客户,信誉良好",
             },
             {
                 "name": "美式家具制造厂",
@@ -151,7 +154,7 @@ class DatabaseInitializer:
                 "address": "深圳市宝安区西乡街道",
                 "customer_type_id": customer_type_ids.get("家具板客户"),
                 "contact_person": "李总",
-                "notes": "高端家具制造商，对质量要求严格",
+                "notes": "高端家具制造商,对质量要求严格",
             },
             {
                 "name": "安全建材贸易公司",
@@ -160,7 +163,7 @@ class DatabaseInitializer:
                 "address": "北京市朝阳区建国门外大街",
                 "customer_type_id": customer_type_ids.get("阻燃板客户"),
                 "contact_person": "王主任",
-                "notes": "专注于阻燃材料，政府项目较多",
+                "notes": "专注于阻燃材料,政府项目较多",
             },
         ]
 
@@ -201,7 +204,7 @@ class DatabaseInitializer:
                 "contact_person": "陈总",
                 "quality_rating": 4.5,
                 "cooperation_years": 3,
-                "notes": "木材质量稳定，交期准时",
+                "notes": "木材质量稳定,交期准时",
             },
             {
                 "name": "环保胶水厂",

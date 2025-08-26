@@ -1,7 +1,7 @@
 """
 Transfunctions - 计算模块
 
-提供统一的业务计算功能。
+提供统一的业务计算功能.
 """
 
 from .customer import CustomerValueMetrics, calculate_customer_value_score
@@ -13,6 +13,7 @@ from .statistics import (
     calculate_pagination,
     calculate_weighted_average,
 )
+
 
 __all__ = [
     # 数据类

@@ -72,7 +72,7 @@ def test_import_performance():
     """测试导入性能"""
     start = time.time()
     try:
-        import PySide6.QtWidgets
+        import tkinter
         import matplotlib.pyplot
         import sqlite3
         import pandas
@@ -189,7 +189,7 @@ uv run python -c "
 import sys
 import importlib.util
 
-packages = ['PySide6', 'matplotlib', 'pandas', 'sqlite3']
+packages = ['tkinter', 'matplotlib', 'pandas', 'sqlite3']
 for pkg in packages:
     try:
         if pkg == 'sqlite3':

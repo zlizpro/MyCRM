@@ -1,11 +1,11 @@
 """Pytest configuration and fixtures for MiniCRM tests."""
 
-import sys
 from pathlib import Path
+import sys
+import tkinter as tk
 from unittest.mock import Mock
 
 import pytest
-from PySide6.QtWidgets import QApplication
 
 
 # Add src directory to Python path
@@ -14,20 +14,22 @@ sys.path.insert(0, str(src_path))
 
 
 @pytest.fixture(scope="session")
-def qapp() -> QApplication:
-    """Create a QApplication instance for testing Qt widgets.
+def tkapp():
+    """Create a tkinter root instance for testing TTK widgets.
 
-    This fixture ensures that there's always a QApplication instance
-    available for Qt widget tests.
+    This fixture ensures that there's always a tkinter root instance
+    available for TTK widget tests.
 
     Returns:
-        QApplication: The Qt application instance
+        tk.Tk: The tkinter root instance
     """
-    app = QApplication.instance()
-    if app is None:
-        app = QApplication([])
-
-    return app
+    root = tk.Tk()
+    root.withdraw()  # 隐藏主窗口
+    yield root
+    try:
+        root.destroy()
+    except tk.TclError:
+        pass  # 窗口已经被销毁
 
 
 @pytest.fixture
@@ -161,8 +163,8 @@ def pytest_collection_modifyitems(config, items):
         ):
             item.add_marker(pytest.mark.unit)
 
-        # Add 'ui' marker to tests that use qapp fixture
-        if "qapp" in item.fixturenames:
+        # Add 'ui' marker to tests that use tkapp fixture
+        if "tkapp" in item.fixturenames:
             item.add_marker(pytest.mark.ui)
 
         # Add 'integration' marker to tests in integration directory

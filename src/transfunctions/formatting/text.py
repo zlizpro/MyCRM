@@ -1,11 +1,12 @@
 """
 Transfunctions - 文本格式化
 
-提供文本、电话、地址等格式化功能。
+提供文本、电话、地址等格式化功能.
 """
 
 import logging
 import re
+
 
 # 配置日志
 logger = logging.getLogger(__name__)
@@ -31,7 +32,7 @@ def format_phone(phone: str, format_type: str = "standard") -> str:
 
     Args:
         phone: 原始电话号码
-        format_type: 格式类型，"standard"（标准格式）、"compact"（紧凑格式）、"display"（显示格式）
+        format_type: 格式类型,"standard"(标准格式)、"compact"(紧凑格式)、"display"(显示格式)
 
     Returns:
         str: 格式化后的电话号码
@@ -50,13 +51,13 @@ def format_phone(phone: str, format_type: str = "standard") -> str:
     if not phone or not isinstance(phone, str):
         return ""
 
-    # 清理电话号码，只保留数字
+    # 清理电话号码,只保留数字
     clean_phone = re.sub(r"\D", "", phone)
 
     if not clean_phone:
         return phone
 
-    # 手机号码格式化（11位）
+    # 手机号码格式化(11位)
     if len(clean_phone) == 11 and clean_phone.startswith("1"):
         if format_type == "standard":
             return f"{clean_phone[:3]}-{clean_phone[3:7]}-{clean_phone[7:]}"
@@ -96,8 +97,8 @@ def format_address(
     """格式化地址信息
 
     Args:
-        address_data: 地址数据（字符串或字典）
-        format_type: 格式类型，"full"（完整）、"short"（简短）、"postal"（邮寄格式）
+        address_data: 地址数据(字符串或字典)
+        format_type: 格式类型,"full"(完整)、"short"(简短)、"postal"(邮寄格式)
         separator: 分隔符
 
     Returns:
@@ -189,7 +190,7 @@ def format_file_size(size_bytes: int) -> str:
     """格式化文件大小
 
     Args:
-        size_bytes: 文件大小（字节）
+        size_bytes: 文件大小(字节)
 
     Returns:
         str: 格式化后的文件大小字符串

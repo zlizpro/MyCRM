@@ -1,7 +1,6 @@
-"""
-MiniCRM 应用程序配置管理
+"""MiniCRM 应用程序配置管理
 
-负责管理应用程序的所有配置项，包括：
+负责管理应用程序的所有配置项,包括:
 - 数据库配置
 - UI主题配置
 - 日志配置
@@ -9,14 +8,12 @@ MiniCRM 应用程序配置管理
 - 用户偏好设置
 """
 
-import json
-import logging
 from dataclasses import asdict, dataclass
 from enum import Enum
+import json
+import logging
 from pathlib import Path
 from typing import Any
-
-from PySide6.QtCore import QSettings, QStandardPaths
 
 
 class ThemeMode(Enum):
@@ -62,25 +59,23 @@ class LoggingConfig:
 
 
 class AppConfig:
-    """
-    应用程序配置管理器
+    """应用程序配置管理器
 
-    负责加载、保存和管理应用程序的所有配置项。
-    配置数据存储在用户的应用程序数据目录中。
+    负责加载、保存和管理应用程序的所有配置项.
+    配置数据存储在用户的应用程序数据目录中.
     """
 
     def __init__(self):
         """初始化配置管理器"""
         self._logger = logging.getLogger(__name__)
 
-        # 初始化Qt设置
-        self._qt_settings = QSettings()
-
         # 获取应用程序数据目录
-        self._app_data_dir = Path(
-            QStandardPaths.writableLocation(QStandardPaths.AppDataLocation)
-        )
+        self._app_data_dir = self._get_app_data_dir()
         self._app_data_dir.mkdir(parents=True, exist_ok=True)
+
+        # 设置存储文件
+        self._settings_file = self._app_data_dir / "settings.json"
+        self._settings_data = {}
 
         # 配置文件路径
         self._config_file = self._app_data_dir / "config.json"
@@ -92,12 +87,52 @@ class AppConfig:
 
         # 加载配置
         self._load_config()
+        self._load_settings()
+
+    def _get_app_data_dir(self) -> Path:
+        """获取应用程序数据目录 - 替代Qt的QStandardPaths"""
+        system = platform.system()
+
+        if system == "Windows":
+            # Windows: %APPDATA%/MiniCRM
+            base_dir = os.environ.get("APPDATA", os.path.expanduser("~"))
+            return Path(base_dir) / "MiniCRM"
+        if system == "Darwin":
+            # macOS: ~/Library/Application Support/MiniCRM
+            return Path.home() / "Library" / "Application Support" / "MiniCRM"
+        # Linux/Unix: ~/.local/share/MiniCRM
+        xdg_data_home = os.environ.get("XDG_DATA_HOME")
+        if xdg_data_home:
+            return Path(xdg_data_home) / "MiniCRM"
+        return Path.home() / ".local" / "share" / "MiniCRM"
+
+    def _load_settings(self) -> None:
+        """加载设置数据"""
+        try:
+            if self._settings_file.exists():
+                with open(self._settings_file, encoding="utf-8") as f:
+                    self._settings_data = json.load(f)
+                self._logger.debug("设置文件加载成功")
+            else:
+                self._settings_data = {}
+                self._logger.debug("设置文件不存在,使用空设置")
+        except Exception as e:
+            self._logger.warning(f"设置文件加载失败: {e}")
+            self._settings_data = {}
+
+    def _save_settings(self) -> None:
+        """保存设置数据"""
+        try:
+            with open(self._settings_file, "w", encoding="utf-8") as f:
+                json.dump(self._settings_data, f, indent=2, ensure_ascii=False)
+            self._logger.debug("设置文件保存成功")
+        except Exception as e:
+            self._logger.error(f"设置文件保存失败: {e}")
 
     def _load_config(self) -> None:
-        """
-        从配置文件加载配置
+        """从配置文件加载配置
 
-        如果配置文件不存在或损坏，将使用默认配置。
+        如果配置文件不存在或损坏,将使用默认配置.
         """
         try:
             if self._config_file.exists():
@@ -124,11 +159,11 @@ class AppConfig:
 
                 self._logger.info("配置文件加载成功")
             else:
-                self._logger.info("配置文件不存在，使用默认配置")
+                self._logger.info("配置文件不存在,使用默认配置")
                 self._save_config()  # 保存默认配置
 
         except Exception as e:
-            self._logger.warning(f"配置文件加载失败，使用默认配置: {e}")
+            self._logger.warning(f"配置文件加载失败,使用默认配置: {e}")
             # 使用默认配置
             self._database_config = DatabaseConfig()
             self._ui_config = UIConfig()
@@ -168,8 +203,7 @@ class AppConfig:
         """获取数据库文件路径"""
         if Path(self._database_config.path).is_absolute():
             return Path(self._database_config.path)
-        else:
-            return self._app_data_dir / self._database_config.path
+        return self._app_data_dir / self._database_config.path
 
     def set_database_path(self, path: str | Path) -> None:
         """设置数据库文件路径"""
@@ -256,14 +290,15 @@ class AppConfig:
         templates_dir.mkdir(exist_ok=True)
         return templates_dir
 
-    # Qt设置访问器（用于窗口状态等）
-    def get_qt_setting(self, key: str, default_value: Any = None) -> Any:
-        """获取Qt设置值"""
-        return self._qt_settings.value(key, default_value)
+    # 设置访问器(替代Qt设置)
+    def get_setting(self, key: str, default_value: Any = None) -> Any:
+        """获取设置值"""
+        return self._settings_data.get(key, default_value)
 
-    def set_qt_setting(self, key: str, value: Any) -> None:
-        """设置Qt设置值"""
-        self._qt_settings.setValue(key, value)
+    def set_setting(self, key: str, value: Any) -> None:
+        """设置设置值"""
+        self._settings_data[key] = value
+        self._save_settings()
 
     def __str__(self) -> str:
         """返回配置的字符串表示"""

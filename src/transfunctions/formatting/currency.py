@@ -1,12 +1,13 @@
 """
 Transfunctions - 货币和数值格式化
 
-提供货币、百分比等数值格式化功能。
+提供货币、百分比等数值格式化功能.
 """
 
 import logging
 import re
 from decimal import ROUND_HALF_UP, Decimal
+
 
 # 配置日志
 logger = logging.getLogger(__name__)
@@ -38,8 +39,8 @@ def format_currency(
 
     Args:
         amount: 金额数值
-        symbol: 货币符号，默认为人民币符号
-        decimal_places: 小数位数，默认2位
+        symbol: 货币符号,默认为人民币符号
+        decimal_places: 小数位数,默认2位
         show_symbol: 是否显示货币符号
         thousand_separator: 是否使用千位分隔符
 
@@ -60,7 +61,7 @@ def format_currency(
     try:
         # 转换为Decimal以确保精度
         if isinstance(amount, str):
-            # 清理字符串中的非数字字符（除了小数点和负号）
+            # 清理字符串中的非数字字符(除了小数点和负号)
             clean_amount = re.sub(r"[^\d\.\-]", "", amount)
             decimal_amount = Decimal(clean_amount)
         else:
@@ -110,7 +111,7 @@ def format_percentage(value: int | float, decimal_places: int = 1) -> str:
     """格式化百分比
 
     Args:
-        value: 数值（0-1之间或0-100之间）
+        value: 数值(0-1之间或0-100之间)
         decimal_places: 小数位数
 
     Returns:
@@ -120,7 +121,7 @@ def format_percentage(value: int | float, decimal_places: int = 1) -> str:
         return "0.0%"
 
     try:
-        # 如果值在0-1之间，转换为百分比
+        # 如果值在0-1之间,转换为百分比
         if 0 <= value <= 1:
             percentage = value * 100
         else:

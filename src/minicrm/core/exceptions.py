@@ -1,290 +1,418 @@
-"""
-MiniCRM 自定义异常类
+"""MiniCRM异常类定义
 
-定义了应用程序中使用的所有自定义异常类型，
-提供更精确的错误处理和用户友好的错误信息。
+定义了系统中使用的所有自定义异常类,提供了清晰的错误分类和处理机制.
+所有异常都继承自MiniCRMError基类,便于统一处理.
+
+异常层次结构:
+    MiniCRMError (基础异常)
+    ├── ValidationError (数据验证异常)
+    ├── DatabaseError (数据库操作异常)
+    ├── BusinessLogicError (业务逻辑异常)
+    ├── ConfigurationError (配置相关异常)
+    └── UIError (界面相关异常)
 """
+
+import logging
+from typing import Any
+
+
+logger = logging.getLogger(__name__)
 
 
 class MiniCRMError(Exception):
-    """
-    MiniCRM基础异常类
+    """MiniCRM系统基础异常类
 
-    所有MiniCRM相关的异常都应该继承自这个类。
-    提供统一的异常处理接口和错误信息格式。
-    """
+    所有MiniCRM相关的异常都应该继承自这个类.
+    提供了统一的异常处理接口和日志记录功能.
 
-    def __init__(self, message: str, error_code: str = None):
-        """
-        初始化异常
-
-        Args:
-            message: 错误消息
-            error_code: 错误代码（可选）
-        """
-        super().__init__(message)
-        self.message = message
-        self.error_code = error_code
-
-    def __str__(self) -> str:
-        """返回异常的字符串表示"""
-        if self.error_code:
-            return f"[{self.error_code}] {self.message}"
-        return self.message
-
-
-class ValidationError(MiniCRMError):
-    """
-    数据验证异常
-
-    当数据验证失败时抛出此异常。
-    通常用于表单验证、数据格式检查等场景。
-    """
-
-    def __init__(self, message: str, field_name: str = None):
-        """
-        初始化验证异常
-
-        Args:
-            message: 错误消息
-            field_name: 验证失败的字段名（可选）
-        """
-        super().__init__(message, "VALIDATION_ERROR")
-        self.field_name = field_name
-
-
-class DatabaseError(MiniCRMError):
-    """
-    数据库操作异常
-
-    当数据库操作失败时抛出此异常。
-    包括连接失败、查询错误、事务失败等。
-    """
-
-    def __init__(self, message: str, sql: str = None):
-        """
-        初始化数据库异常
-
-        Args:
-            message: 错误消息
-            sql: 导致错误的SQL语句（可选）
-        """
-        super().__init__(message, "DATABASE_ERROR")
-        self.sql = sql
-
-
-class BusinessLogicError(MiniCRMError):
-    """
-    业务逻辑异常
-
-    当业务规则验证失败时抛出此异常。
-    例如：重复创建客户、违反业务约束等。
-    """
-
-    def __init__(self, message: str, business_rule: str = None):
-        """
-        初始化业务逻辑异常
-
-        Args:
-            message: 错误消息
-            business_rule: 违反的业务规则（可选）
-        """
-        super().__init__(message, "BUSINESS_LOGIC_ERROR")
-        self.business_rule = business_rule
-
-
-class ConfigurationError(MiniCRMError):
-    """
-    配置错误异常
-
-    当应用程序配置有问题时抛出此异常。
-    例如：配置文件损坏、必需的配置项缺失等。
-    """
-
-    def __init__(self, message: str, config_key: str = None):
-        """
-        初始化配置错误异常
-
-        Args:
-            message: 错误消息
-            config_key: 有问题的配置键（可选）
-        """
-        super().__init__(message, "CONFIGURATION_ERROR")
-        self.config_key = config_key
-
-
-class ServiceError(MiniCRMError):
-    """
-    服务层异常
-
-    当服务层操作失败时抛出此异常。
-    通常包装底层异常，提供更高级别的错误信息。
+    Attributes:
+        message: 错误消息
+        error_code: 错误代码,用于程序化处理
+        details: 错误详细信息字典
+        original_exception: 原始异常对象(如果有)
     """
 
     def __init__(
-        self, message: str, service_name: str = None, original_error: Exception = None
+        self,
+        message: str,
+        error_code: str | None = None,
+        details: dict[str, Any] | None = None,
+        original_exception: Exception | None = None,
     ):
-        """
-        初始化服务异常
+        """初始化异常
 
         Args:
             message: 错误消息
-            service_name: 服务名称（可选）
-            original_error: 原始异常（可选）
+            error_code: 错误代码
+            details: 错误详细信息
+            original_exception: 原始异常对象
         """
-        super().__init__(message, "SERVICE_ERROR")
-        self.service_name = service_name
-        self.original_error = original_error
+        super().__init__(message)
+        self.message = message
+        self.error_code = error_code or self.__class__.__name__
+        self.details = details or {}
+        self.original_exception = original_exception
+
+        # 记录异常日志
+        logger.error(
+            f"MiniCRM异常: {self.error_code} - {message}",
+            extra={
+                "error_code": self.error_code,
+                "details": self.details,
+                "original_exception": str(original_exception)
+                if original_exception
+                else None,
+            },
+        )
+
+    def __str__(self) -> str:
+        """返回异常的字符串表示"""
+        return f"[{self.error_code}] {self.message}"
+
+    def to_dict(self) -> dict[str, Any]:
+        """将异常转换为字典格式
+
+        Returns:
+            包含异常信息的字典
+        """
+        return {
+            "error_type": self.__class__.__name__,
+            "error_code": self.error_code,
+            "message": self.message,
+            "details": self.details,
+            "original_exception": str(self.original_exception)
+            if self.original_exception
+            else None,
+        }
+
+
+class ValidationError(MiniCRMError):
+    r"""数据验证异常
+
+    当数据验证失败时抛出此异常.
+    通常用于表单验证、数据格式检查等场景.
+
+    Examples:
+        >>> if not customer_name:
+        ...     raise ValidationError("客户名称不能为空", "EMPTY_CUSTOMER_NAME")
+        >>>
+        >>> if not re.match(r"^1[3-9]\d{9}$", phone):
+        ...     raise ValidationError("电话号码格式不正确", "INVALID_PHONE_FORMAT")
+    """
+
+    def __init__(
+        self,
+        message: str,
+        field_name: str | None = None,
+        field_value: Any | None = None,
+        **kwargs,
+    ):
+        """初始化验证异常
+
+        Args:
+            message: 错误消息
+            field_name: 验证失败的字段名
+            field_value: 验证失败的字段值
+            **kwargs: 其他参数传递给父类
+        """
+        details = kwargs.get("details", {})
+        if field_name:
+            details["field_name"] = field_name
+        if field_value is not None:
+            details["field_value"] = str(field_value)
+
+        kwargs["details"] = details
+        super().__init__(message, **kwargs)
+
+
+class DatabaseError(MiniCRMError):
+    """数据库操作异常
+
+    当数据库操作失败时抛出此异常.
+    包括连接失败、SQL执行错误、事务回滚等.
+
+    Examples:
+        >>> try:
+        ...     cursor.execute(sql, params)
+        ... except sqlite3.Error as e:
+        ...     raise DatabaseError("数据库查询失败", original_exception=e)
+    """
+
+    def __init__(
+        self,
+        message: str,
+        sql_statement: str | None = None,
+        sql_params: tuple | None = None,
+        **kwargs,
+    ):
+        """初始化数据库异常
+
+        Args:
+            message: 错误消息
+            sql_statement: 执行失败的SQL语句
+            sql_params: SQL参数
+            **kwargs: 其他参数传递给父类
+        """
+        details = kwargs.get("details", {})
+        if sql_statement:
+            details["sql_statement"] = sql_statement
+        if sql_params:
+            details["sql_params"] = str(sql_params)
+
+        kwargs["details"] = details
+        super().__init__(message, **kwargs)
+
+
+class BusinessLogicError(MiniCRMError):
+    """业务逻辑异常
+
+    当业务规则验证失败时抛出此异常.
+    例如:客户信用额度超限、重复创建客户等.
+
+    Examples:
+        >>> if customer_exists(customer_name):
+        ...     raise BusinessLogicError("客户已存在", "DUPLICATE_CUSTOMER")
+        >>>
+        >>> if order_amount > credit_limit:
+        ...     raise BusinessLogicError(
+        ...         "订单金额超过信用额度", "CREDIT_LIMIT_EXCEEDED"
+        ...     )
+    """
+
+    def __init__(
+        self,
+        message: str,
+        business_rule: str | None = None,
+        context: dict[str, Any] | None = None,
+        **kwargs,
+    ):
+        """初始化业务逻辑异常
+
+        Args:
+            message: 错误消息
+            business_rule: 违反的业务规则名称
+            context: 业务上下文信息
+            **kwargs: 其他参数传递给父类
+        """
+        details = kwargs.get("details", {})
+        if business_rule:
+            details["business_rule"] = business_rule
+        if context:
+            details["context"] = context
+
+        kwargs["details"] = details
+        super().__init__(message, **kwargs)
+
+
+class ConfigurationError(MiniCRMError):
+    """配置相关异常
+
+    当系统配置错误或缺失时抛出此异常.
+    例如:配置文件不存在、配置项无效等.
+
+    Examples:
+        >>> if not os.path.exists(config_file):
+        ...     raise ConfigurationError("配置文件不存在", "CONFIG_FILE_NOT_FOUND")
+        >>>
+        >>> if database_path is None:
+        ...     raise ConfigurationError(
+        ...         "数据库路径未配置", "DATABASE_PATH_MISSING"
+        ...     )
+    """
+
+    def __init__(
+        self,
+        message: str,
+        config_key: str | None = None,
+        config_file: str | None = None,
+        **kwargs,
+    ):
+        """初始化配置异常
+
+        Args:
+            message: 错误消息
+            config_key: 相关的配置键名
+            config_file: 相关的配置文件路径
+            **kwargs: 其他参数传递给父类
+        """
+        details = kwargs.get("details", {})
+        if config_key:
+            details["config_key"] = config_key
+        if config_file:
+            details["config_file"] = config_file
+
+        kwargs["details"] = details
+        super().__init__(message, **kwargs)
+
+
+class ServiceError(MiniCRMError):
+    """服务层异常
+
+    当服务层操作失败时抛出此异常.
+    例如:服务初始化失败、服务调用错误等.
+
+    Examples:
+        >>> if not service.is_available():
+        ...     raise ServiceError("服务不可用", "SERVICE_UNAVAILABLE")
+        >>>
+        >>> if operation_failed:
+        ...     raise ServiceError("服务操作失败", "OPERATION_FAILED")
+    """
+
+    def __init__(
+        self,
+        message: str,
+        service_name: str | None = None,
+        operation: str | None = None,
+        **kwargs,
+    ):
+        """初始化服务异常
+
+        Args:
+            message: 错误消息
+            service_name: 相关的服务名称
+            operation: 相关的操作名称
+            **kwargs: 其他参数传递给父类
+        """
+        details = kwargs.get("details", {})
+        if service_name:
+            details["service_name"] = service_name
+        if operation:
+            details["operation"] = operation
+
+        kwargs["details"] = details
+        super().__init__(message, **kwargs)
 
 
 class UIError(MiniCRMError):
-    """
-    用户界面异常
+    """用户界面相关异常
 
-    当UI操作失败时抛出此异常。
-    例如：组件初始化失败、界面更新错误等。
+    当UI操作失败时抛出此异常.
+    例如:窗口创建失败、控件初始化错误等.
+
+    Examples:
+        >>> if not widget.isVisible():
+        ...     raise UIError("窗口显示失败", "WINDOW_DISPLAY_FAILED")
+        >>>
+        >>> if theme_file is None:
+        ...     raise UIError("主题文件加载失败", "THEME_LOAD_FAILED")
     """
 
-    def __init__(self, message: str, component_name: str = None):
-        """
-        初始化UI异常
+    def __init__(
+        self,
+        message: str,
+        widget_name: str | None = None,
+        ui_operation: str | None = None,
+        **kwargs,
+    ):
+        """初始化UI异常
 
         Args:
             message: 错误消息
-            component_name: 组件名称（可选）
+            widget_name: 相关的控件名称
+            ui_operation: 相关的UI操作
+            **kwargs: 其他参数传递给父类
         """
-        super().__init__(message, "UI_ERROR")
-        self.component_name = component_name
+        details = kwargs.get("details", {})
+        if widget_name:
+            details["widget_name"] = widget_name
+        if ui_operation:
+            details["ui_operation"] = ui_operation
+
+        kwargs["details"] = details
+        super().__init__(message, **kwargs)
 
 
-class FileOperationError(MiniCRMError):
+class DependencyError(MiniCRMError):
+    """依赖注入相关异常
+
+    当依赖注入操作失败时抛出此异常.
+    例如:依赖未注册、循环依赖、注入失败等.
+
+    Examples:
+        >>> if service_type not in self._services:
+        ...     raise DependencyError("服务未注册", "SERVICE_NOT_REGISTERED")
+        >>>
+        >>> if circular_dependency_detected:
+        ...     raise DependencyError("检测到循环依赖", "CIRCULAR_DEPENDENCY")
     """
-    文件操作异常
 
-    当文件操作失败时抛出此异常。
-    例如：文件读写失败、路径不存在等。
-    """
-
-    def __init__(self, message: str, file_path: str = None, operation: str = None):
-        """
-        初始化文件操作异常
+    def __init__(
+        self,
+        message: str,
+        dependency_type: str | None = None,
+        dependency_name: str | None = None,
+        **kwargs,
+    ):
+        """初始化依赖异常
 
         Args:
             message: 错误消息
-            file_path: 文件路径（可选）
-            operation: 操作类型（可选）
+            dependency_type: 依赖类型
+            dependency_name: 依赖名称
+            **kwargs: 其他参数传递给父类
         """
-        super().__init__(message, "FILE_OPERATION_ERROR")
-        self.file_path = file_path
-        self.operation = operation
+        details = kwargs.get("details", {})
+        if dependency_type:
+            details["dependency_type"] = dependency_type
+        if dependency_name:
+            details["dependency_name"] = dependency_name
 
-
-class AuthenticationError(MiniCRMError):
-    """
-    认证异常
-
-    当用户认证失败时抛出此异常。
-    （为将来可能的用户认证功能预留）
-    """
-
-    def __init__(self, message: str, username: str = None):
-        """
-        初始化认证异常
-
-        Args:
-            message: 错误消息
-            username: 用户名（可选）
-        """
-        super().__init__(message, "AUTHENTICATION_ERROR")
-        self.username = username
-
-
-class PermissionError(MiniCRMError):
-    """
-    权限异常
-
-    当用户没有足够权限执行操作时抛出此异常。
-    （为将来可能的权限管理功能预留）
-    """
-
-    def __init__(self, message: str, required_permission: str = None):
-        """
-        初始化权限异常
-
-        Args:
-            message: 错误消息
-            required_permission: 所需权限（可选）
-        """
-        super().__init__(message, "PERMISSION_ERROR")
-        self.required_permission = required_permission
+        kwargs["details"] = details
+        super().__init__(message, **kwargs)
 
 
 # 异常处理工具函数
-def handle_exception(exception: Exception, logger=None) -> str:
-    """
-    统一异常处理函数
+def handle_exception(func):
+    """异常处理装饰器
+
+    用于统一处理函数中的异常,将未捕获的异常转换为MiniCRMError.
 
     Args:
-        exception: 要处理的异常
-        logger: 日志记录器（可选）
+        func: 要装饰的函数
 
     Returns:
-        str: 用户友好的错误消息
+        装饰后的函数
     """
+
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except MiniCRMError:
+            # MiniCRM异常直接重新抛出
+            raise
+        except Exception as e:
+            # 其他异常转换为MiniCRMError
+            logger.error(f"未处理的异常在函数 {func.__name__}: {e}")
+            raise MiniCRMError(
+                f"函数 {func.__name__} 执行失败: {e!s}",
+                error_code="UNHANDLED_EXCEPTION",
+                original_exception=e,
+            )
+
+    return wrapper
+
+
+def log_exception(exception: Exception, context: dict[str, Any] | None = None):
+    """记录异常日志
+
+    Args:
+        exception: 要记录的异常
+        context: 额外的上下文信息
+    """
+    context = context or {}
+
     if isinstance(exception, MiniCRMError):
-        # MiniCRM自定义异常，直接返回消息
-        error_message = str(exception)
+        logger.error(
+            f"MiniCRM异常: {exception.error_code} - {exception.message}",
+            extra={
+                "error_code": exception.error_code,
+                "details": exception.details,
+                "context": context,
+            },
+        )
     else:
-        # 其他异常，包装为通用错误
-        error_message = f"系统错误: {str(exception)}"
-
-    # 记录日志
-    if logger:
-        logger.error(f"异常处理: {error_message}", exc_info=True)
-
-    return error_message
-
-
-def create_user_friendly_message(exception: Exception) -> str:
-    """
-    创建用户友好的错误消息
-
-    Args:
-        exception: 异常对象
-
-    Returns:
-        str: 用户友好的错误消息
-    """
-    if isinstance(exception, ValidationError):
-        if exception.field_name:
-            return f"数据验证失败：{exception.field_name} - {exception.message}"
-        return f"数据验证失败：{exception.message}"
-
-    elif isinstance(exception, DatabaseError):
-        return f"数据库操作失败：{exception.message}"
-
-    elif isinstance(exception, BusinessLogicError):
-        return f"业务规则验证失败：{exception.message}"
-
-    elif isinstance(exception, ConfigurationError):
-        return f"配置错误：{exception.message}"
-
-    elif isinstance(exception, ServiceError):
-        if exception.service_name:
-            return f"{exception.service_name}服务错误：{exception.message}"
-        return f"服务错误：{exception.message}"
-
-    elif isinstance(exception, UIError):
-        return f"界面错误：{exception.message}"
-
-    elif isinstance(exception, FileOperationError):
-        return f"文件操作失败：{exception.message}"
-
-    elif isinstance(exception, AuthenticationError):
-        return f"认证失败：{exception.message}"
-
-    elif isinstance(exception, PermissionError):
-        return f"权限不足：{exception.message}"
-
-    else:
-        return f"系统错误：{str(exception)}"
+        logger.error(
+            f"系统异常: {exception.__class__.__name__} - {exception!s}",
+            extra={"exception_type": exception.__class__.__name__, "context": context},
+        )

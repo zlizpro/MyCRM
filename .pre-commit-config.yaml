@@ -6,16 +6,16 @@ repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.1.15 # 更新到较新版本
     hooks:
-      # 运行ruff检查
+      # 运行ruff检查 (专注于关键问题)
       - id: ruff
-        name: Ruff代码质量检查
-        args: [--fix, --exit-non-zero-on-fix, --config=ruff.toml]
+        name: Ruff关键问题检查
+        args: [--fix, --exit-non-zero-on-fix, --config=ruff-dao-fixes.toml]
         files: ^src/.*\.py$
         exclude: ^src/.*/__pycache__/.*$
       # 运行ruff格式化
       - id: ruff-format
         name: Ruff代码格式化
-        args: [--config=ruff.toml]
+        args: [--config=ruff-dao-fixes.toml]
         files: ^src/.*\.py$
         exclude: ^src/.*/__pycache__/.*$
 
@@ -28,7 +28,7 @@ repos:
         files: ^src/.*\.py$
         exclude: ^src/.*/__pycache__/.*$
         additional_dependencies:
-          [PySide6, types-requests, types-setuptools, types-python-dateutil]
+          [types-requests, types-setuptools, types-python-dateutil]
         args:
           [--config-file=mypy.ini, --show-error-codes, --show-column-numbers]
 
@@ -51,6 +51,16 @@ repos:
         language: system
         files: ^src/.*\.py$
         pass_filenames: false
+
+  # 中文标点符号检查
+  - repo: local
+    hooks:
+      - id: chinese-punctuation-check
+        name: 检查和修复中文标点符号
+        entry: python scripts/fix_chinese_punctuation.py
+        language: system
+        files: ^src/.*\.py$
+        pass_filenames: true
 
   # 通用检查
   - repo: https://github.com/pre-commit/pre-commit-hooks

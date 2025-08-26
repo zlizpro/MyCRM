@@ -1,7 +1,7 @@
 """
 MiniCRM 核心接口定义
 
-定义系统各层之间的接口契约，确保：
+定义系统各层之间的接口契约,确保:
 - 清晰的依赖关系
 - 松耦合的架构设计
 - 易于测试和扩展
@@ -23,6 +23,7 @@ from .ui_interfaces import (
     IDataTable,
     IFormPanel,
 )
+
 
 __all__ = [
     # Service接口

@@ -1,13 +1,14 @@
 """
 Transfunctions - 财务计算
 
-提供报价、财务等相关的计算功能。
+提供报价、财务等相关的计算功能.
 """
 
 import logging
 from dataclasses import dataclass
 from decimal import Decimal
 from typing import Any
+
 
 # 配置日志
 logger = logging.getLogger(__name__)
@@ -36,11 +37,11 @@ class QuoteItem:
     unit_price: Decimal
     quantity: int
     discount_rate: float = 0.0  # 折扣率 (0-1)
-    tax_rate: float = 0.13  # 税率，默认13%
+    tax_rate: float = 0.13  # 税率,默认13%
 
     @property
     def subtotal(self) -> Decimal:
-        """计算小计金额（含折扣，不含税）"""
+        """计算小计金额(含折扣,不含税)"""
         base_amount = self.unit_price * self.quantity
         discount_amount = base_amount * Decimal(str(self.discount_rate))
         return base_amount - discount_amount
@@ -52,7 +53,7 @@ class QuoteItem:
 
     @property
     def total_amount(self) -> Decimal:
-        """计算总金额（含税）"""
+        """计算总金额(含税)"""
         return self.subtotal + self.tax_amount
 
 
@@ -66,7 +67,7 @@ def calculate_quote_total(
     Args:
         quote_items: 报价项目列表
         global_discount_rate: 全局折扣率
-        additional_fees: 额外费用（如运费、安装费等）
+        additional_fees: 额外费用(如运费、安装费等)
 
     Returns:
         Dict[str, Decimal]: 包含各项金额的字典
@@ -154,7 +155,7 @@ def calculate_compound_interest(principal: float, rate: float, periods: int) -> 
 
     Args:
         principal: 本金
-        rate: 利率（如0.05表示5%）
+        rate: 利率(如0.05表示5%)
         periods: 期数
 
     Returns:

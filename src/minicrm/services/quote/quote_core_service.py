@@ -1,11 +1,11 @@
 """
 MiniCRM 报价核心服务
 
-负责报价的基础CRUD操作，保持单一职责原则。
-从原始的quote_service.py中提取核心功能。
+负责报价的基础CRUD操作,保持单一职责原则.
+从原始的quote_service.py中提取核心功能.
 """
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any
 
 from transfunctions import ValidationError
@@ -22,7 +22,7 @@ class QuoteCoreService(CRUDService):
     """
     报价核心服务
 
-    专注于报价的基础CRUD操作，遵循单一职责原则。
+    专注于报价的基础CRUD操作,遵循单一职责原则.
     """
 
     def __init__(self, dao=None):
@@ -47,11 +47,22 @@ class QuoteCoreService(CRUDService):
 
         for i, item in enumerate(data["items"]):
             item_errors = []
-            if not item.get("product_name"):
+
+            # 处理QuoteItem对象或字典
+            if hasattr(item, "product_name"):  # QuoteItem对象
+                product_name = item.product_name
+                unit_price = item.unit_price
+                quantity = item.quantity
+            else:  # 字典
+                product_name = item.get("product_name")
+                unit_price = item.get("unit_price")
+                quantity = item.get("quantity")
+
+            if not product_name:
                 item_errors.append("产品名称不能为空")
-            if not item.get("unit_price") or float(item["unit_price"]) <= 0:
+            if not unit_price or float(unit_price) <= 0:
                 item_errors.append("单价必须大于0")
-            if not item.get("quantity") or float(item["quantity"]) <= 0:
+            if not quantity or float(quantity) <= 0:
                 item_errors.append("数量必须大于0")
 
             if item_errors:
@@ -74,9 +85,7 @@ class QuoteCoreService(CRUDService):
         try:
             # 设置默认值
             data.setdefault("quote_date", datetime.now())
-            data.setdefault(
-                "valid_until", datetime.now().replace(day=datetime.now().day + 30)
-            )
+            data.setdefault("valid_until", datetime.now() + timedelta(days=30))
             data.setdefault("quote_status", QuoteStatus.DRAFT.value)
 
             # 生成报价编号
@@ -139,7 +148,7 @@ class QuoteCoreService(CRUDService):
             updated_data.update(data)
             updated_data["updated_at"] = datetime.now()
 
-            # 重新计算总金额（如果项目有变化）
+            # 重新计算总金额(如果项目有变化)
             if "items" in data:
                 total_amount = sum(
                     float(item.get("unit_price", 0)) * float(item.get("quantity", 0))
@@ -205,7 +214,7 @@ class QuoteCoreService(CRUDService):
             sequence = len(existing_quotes) + 1
             return f"{prefix}{sequence:03d}"
         except Exception:
-            # 如果获取失败，使用时间戳
+            # 如果获取失败,使用时间戳
             return f"{prefix}{today.strftime('%H%M%S')}"
 
     def get_quote_by_number(self, quote_number: str) -> Quote | None:

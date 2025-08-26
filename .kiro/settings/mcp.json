@@ -17,10 +17,10 @@
       "env": {
         "FASTMCP_LOG_LEVEL": "ERROR"
       },
-      "disabled": false,
+      "disabled": true,
       "autoApprove": []
     },
-    "Sequential-Thinking": {
+    "sequential-thinking": {
       "command": "npx",
       "args": [
         "-y",
@@ -43,7 +43,8 @@
       },
       "disabled": false,
       "autoApprove": [
-        "resolve-library-id"
+        "resolve_library_id",
+        "get_library_docs"
       ]
     },
     "apple-doc-mcp": {
@@ -52,29 +53,12 @@
         "/Users/zliz/apple-doc-mcp/dist/index.js"
       ],
       "env": {},
-      "disabled": false,
+      "disabled": true,
       "autoApprove": [
         "list_technologies",
         "search_symbols",
         "get_documentation",
         "check_updates"
-      ]
-    },
-    "git-mcp": {
-      "command": "uvx",
-      "args": [
-        "mcp-server-git"
-      ],
-      "env": {},
-      "disabled": false,
-      "autoApprove": [
-        "git_log",
-        "git_diff",
-        "git_show",
-        "search_files",
-        "read_file",
-        "git_status",
-        "git_create_branch"
       ]
     },
     "transfunctions-reference": {
@@ -94,6 +78,18 @@
         "read_file",
         "git_status"
       ]
+    },
+    "GitHub": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-github"
+      ],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "your_github_token_here"
+      },
+      "disabled": false,
+      "autoApprove": []
     }
   }
 }

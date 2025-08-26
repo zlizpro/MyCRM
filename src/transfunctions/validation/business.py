@@ -1,7 +1,7 @@
 """
 Transfunctions - 业务验证函数
 
-提供MiniCRM业务相关的验证功能，包括客户、供应商等业务实体验证。
+提供MiniCRM业务相关的验证功能,包括客户、供应商等业务实体验证.
 """
 
 import logging
@@ -10,6 +10,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from .core import validate_email, validate_phone
+
 
 # 配置日志
 logger = logging.getLogger(__name__)
@@ -23,7 +24,7 @@ class ValidationError(Exception):
 
         Args:
             message: 错误消息
-            field: 出错的字段名（可选）
+            field: 出错的字段名(可选)
         """
         self.message = message
         self.field = field
@@ -50,19 +51,19 @@ class ValidationResult:
 
 # 常用正则表达式模式
 PATTERNS = {
-    # 中国大陆手机号码（11位，1开头）
+    # 中国大陆手机号码(11位,1开头)
     "mobile_phone": r"^1[3-9]\d{9}$",
-    # 固定电话（区号-号码格式）
+    # 固定电话(区号-号码格式)
     "landline_phone": r"^0\d{2,3}-?\d{7,8}$",
     # 邮箱地址
     "email": r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$",
-    # 中文姓名（2-10个中文字符）
+    # 中文姓名(2-10个中文字符)
     "chinese_name": r"^[\u4e00-\u9fa5]{2,10}$",
-    # 公司名称（中文、英文、数字、常用符号）
-    "company_name": r"^[\u4e00-\u9fa5a-zA-Z0-9\(\)\（\）\&\-\s]{2,50}$",
-    # 统一社会信用代码（18位）
+    # 公司名称(中文、英文、数字、常用符号)
+    "company_name": r"^[\u4e00-\u9fa5a-zA-Z0-9\(\)\(\)\&\-\s]{2,50}$",
+    # 统一社会信用代码(18位)
     "credit_code": r"^[0-9A-HJ-NPQRTUWXY]{2}\d{6}[0-9A-HJ-NPQRTUWXY]{10}$",
-    # 邮政编码（6位数字）
+    # 邮政编码(6位数字)
     "postal_code": r"^\d{6}$",
 }
 
@@ -71,7 +72,7 @@ def validate_customer_data(customer_data: dict[str, Any]) -> ValidationResult:
     """验证客户数据完整性和格式
 
     Args:
-        customer_data: 客户数据字典，包含姓名、电话、邮箱等信息
+        customer_data: 客户数据字典,包含姓名、电话、邮箱等信息
 
     Returns:
         ValidationResult: 验证结果对象
@@ -104,31 +105,31 @@ def validate_customer_data(customer_data: dict[str, Any]) -> ValidationResult:
         if not validate_phone(phone):
             result.add_error("电话号码格式不正确")
 
-    # 邮箱验证（可选字段）
+    # 邮箱验证(可选字段)
     email = customer_data.get("email", "").strip()
     if email:
         if not validate_email(email):
             result.add_error("邮箱地址格式不正确")
 
-    # 公司名称验证（可选字段）
+    # 公司名称验证(可选字段)
     company = customer_data.get("company", "").strip()
     if company:
         if len(company) > 100:
             result.add_error("公司名称不能超过100个字符")
         elif not re.match(PATTERNS["company_name"], company):
-            result.add_warning("公司名称包含特殊字符，请确认是否正确")
+            result.add_warning("公司名称包含特殊字符,请确认是否正确")
 
     # 客户等级验证
     level = customer_data.get("level")
     if level and level not in ["VIP", "重要", "普通", "潜在"]:
-        result.add_error("客户等级必须是：VIP、重要、普通、潜在之一")
+        result.add_error("客户等级必须是:VIP、重要、普通、潜在之一")
 
-    # 地址验证（可选字段）
+    # 地址验证(可选字段)
     address = customer_data.get("address", "").strip()
     if address and len(address) > 200:
         result.add_error("地址不能超过200个字符")
 
-    # 客户类型检查（板材行业特定）
+    # 客户类型检查(板材行业特定)
     valid_types = ["生态板客户", "家具板客户", "阻燃板客户", "其他"]
     if (
         customer_data.get("customer_type")
@@ -136,7 +137,7 @@ def validate_customer_data(customer_data: dict[str, Any]) -> ValidationResult:
     ):
         result.add_error(f"客户类型必须是以下之一: {', '.join(valid_types)}")
 
-    logger.info(f"客户数据验证完成，有效性: {result.is_valid}")
+    logger.info(f"客户数据验证完成,有效性: {result.is_valid}")
     return result
 
 
@@ -179,13 +180,13 @@ def validate_supplier_data(supplier_data: dict[str, Any]) -> ValidationResult:
         if not validate_phone(phone):
             result.add_error("电话号码格式不正确")
 
-    # 邮箱验证（可选）
+    # 邮箱验证(可选)
     email = supplier_data.get("email", "").strip()
     if email:
         if not validate_email(email):
             result.add_error("邮箱地址格式不正确")
 
-    # 统一社会信用代码验证（可选）
+    # 统一社会信用代码验证(可选)
     credit_code = supplier_data.get("credit_code", "").strip()
     if credit_code:
         if not re.match(PATTERNS["credit_code"], credit_code):
@@ -194,14 +195,14 @@ def validate_supplier_data(supplier_data: dict[str, Any]) -> ValidationResult:
     # 供应商等级验证
     level = supplier_data.get("level")
     if level and level not in ["战略", "重要", "普通", "备选"]:
-        result.add_error("供应商等级必须是：战略、重要、普通、备选之一")
+        result.add_error("供应商等级必须是:战略、重要、普通、备选之一")
 
     # 兼容旧的等级系统
     valid_grades = ["A级", "B级", "C级", "D级"]
     if supplier_data.get("grade") and supplier_data["grade"] not in valid_grades:
-        result.add_warning("建议使用新的等级系统：战略、重要、普通、备选")
+        result.add_warning("建议使用新的等级系统:战略、重要、普通、备选")
 
-    logger.info(f"供应商数据验证完成，有效性: {result.is_valid}")
+    logger.info(f"供应商数据验证完成,有效性: {result.is_valid}")
     return result
 
 

@@ -1,7 +1,7 @@
 """
 供应商数据访问对象实现
 
-严格遵循数据访问层职责：
+严格遵循数据访问层职责:
 - 只负责数据的CRUD操作
 - 不包含业务逻辑
 - 实现ISupplierDAO接口
@@ -20,7 +20,7 @@ class SupplierDAO(ISupplierDAO):
     """
     供应商数据访问对象实现
 
-    严格遵循单一职责原则：
+    严格遵循单一职责原则:
     - 只负责供应商数据的数据库操作
     - 不包含业务逻辑
     - 实现标准的CRUD接口
@@ -43,9 +43,9 @@ class SupplierDAO(ISupplierDAO):
             sql = """
             INSERT INTO suppliers (
                 name, contact_person, phone, email, address,
-                business_license, supplier_type_id, level, status,
+                quality_rating, cooperation_years, notes,
                 created_at, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """
 
             params = (
@@ -54,10 +54,9 @@ class SupplierDAO(ISupplierDAO):
                 data.get("phone"),
                 data.get("email"),
                 data.get("address"),
-                data.get("business_license"),
-                data.get("supplier_type_id"),
-                data.get("level", "normal"),
-                data.get("status", "active"),
+                data.get("quality_rating", 0.0),
+                data.get("cooperation_years", 0),
+                data.get("notes"),
                 data.get("created_at"),
                 data.get("updated_at"),
             )
@@ -196,16 +195,16 @@ class SupplierDAO(ISupplierDAO):
             self._logger.error(f"按名称或联系方式搜索失败: {e}")
             raise DatabaseError(f"按名称或联系方式搜索失败: {e}") from e
 
-    def get_by_type(self, supplier_type_id: int) -> list[dict[str, Any]]:
-        """根据供应商类型获取供应商列表"""
+    def get_by_quality_rating(self, min_rating: float) -> list[dict[str, Any]]:
+        """根据质量评级获取供应商列表"""
         try:
-            sql = "SELECT * FROM suppliers WHERE supplier_type_id = ? ORDER BY name"
-            results = self._db.execute_query(sql, (supplier_type_id,))
+            sql = "SELECT * FROM suppliers WHERE quality_rating >= ? ORDER BY quality_rating DESC"
+            results = self._db.execute_query(sql, (min_rating,))
             return [self._row_to_dict(row) for row in results]
 
         except Exception as e:
-            self._logger.error(f"按类型获取供应商失败: {e}")
-            raise DatabaseError(f"按类型获取供应商失败: {e}") from e
+            self._logger.error(f"按质量评级获取供应商失败: {e}")
+            raise DatabaseError(f"按质量评级获取供应商失败: {e}") from e
 
     def get_statistics(self) -> dict[str, Any]:
         """获取供应商统计信息"""
@@ -217,24 +216,28 @@ class SupplierDAO(ISupplierDAO):
             result = self._db.execute_query(total_sql)
             stats["total_suppliers"] = result[0][0] if result else 0
 
-            # 按类型统计
-            type_sql = """
-            SELECT st.name, COUNT(s.id)
-            FROM suppliers s
-            LEFT JOIN supplier_types st ON s.supplier_type_id = st.id
-            GROUP BY s.supplier_type_id, st.name
-            """
-            type_results = self._db.execute_query(type_sql)
-            stats["by_type"] = {row[0] or "未分类": row[1] for row in type_results}
-
-            # 按状态统计
-            status_sql = """
-            SELECT status, COUNT(*)
+            # 按质量评级统计
+            rating_sql = """
+            SELECT
+                CASE
+                    WHEN quality_rating >= 4.0 THEN '优秀'
+                    WHEN quality_rating >= 3.0 THEN '良好'
+                    WHEN quality_rating >= 2.0 THEN '一般'
+                    ELSE '待改进'
+                END as rating_level,
+                COUNT(*)
             FROM suppliers
-            GROUP BY status
+            GROUP BY rating_level
             """
-            status_results = self._db.execute_query(status_sql)
-            stats["by_status"] = {row[0]: row[1] for row in status_results}
+            rating_results = self._db.execute_query(rating_sql)
+            stats["by_rating"] = {row[0]: row[1] for row in rating_results}
+
+            # 平均质量评级
+            avg_rating_sql = "SELECT AVG(quality_rating) FROM suppliers"
+            avg_result = self._db.execute_query(avg_rating_sql)
+            stats["avg_quality_rating"] = (
+                avg_result[0][0] if avg_result and avg_result[0][0] else 0.0
+            )
 
             return stats
 
@@ -385,6 +388,126 @@ class SupplierDAO(ISupplierDAO):
             self._logger.error(f"更新交流事件失败: {e}")
             raise DatabaseError(f"更新交流事件失败: {e}") from e
 
+    def execute_complex_query(
+        self, sql: str, params: tuple[Any, ...] | None = None
+    ) -> list[dict[str, Any]]:
+        """
+        执行复杂查询
+
+        Args:
+            sql: SQL查询语句
+            params: 查询参数
+
+        Returns:
+            List[Dict[str, Any]]: 查询结果
+
+        Raises:
+            DatabaseError: 数据库操作失败
+        """
+        try:
+            results = self._db.execute_query(sql, params or ())
+            return [self._row_to_dict(row) for row in results]
+
+        except Exception as e:
+            self._logger.error(f"执行复杂查询失败: {e}")
+            raise DatabaseError(f"执行复杂查询失败: {e}") from e
+
+    def search_with_conditions(
+        self,
+        conditions: dict[str, Any],
+        joins: list[str] | None = None,
+        order_by: str | None = None,
+        limit: int | None = None,
+        offset: int | None = None,
+    ) -> list[dict[str, Any]]:
+        """
+        根据复杂条件搜索供应商
+
+        Args:
+            conditions: 搜索条件字典
+            joins: 表连接列表
+            order_by: 排序字段
+            limit: 限制数量
+            offset: 偏移量
+
+        Returns:
+            List[Dict[str, Any]]: 搜索结果
+
+        Raises:
+            DatabaseError: 数据库操作失败
+        """
+        try:
+            # 构建基础查询
+            sql_parts = ["SELECT suppliers.*"]
+            params = []
+
+            # 添加统计字段(如果有采购订单关联)
+            if joins and any("purchase_orders" in join for join in joins):
+                sql_parts[0] += """,
+                    COUNT(purchase_orders.id) as total_orders,
+                    COALESCE(SUM(purchase_orders.amount), 0) as total_amount,
+                    MAX(purchase_orders.order_date) as last_order_date"""
+
+            sql_parts.append("FROM suppliers")
+
+            # 添加表连接
+            if joins:
+                sql_parts.extend(joins)
+
+            # 构建WHERE条件
+            if conditions:
+                where_clauses = []
+                for field, value in conditions.items():
+                    if isinstance(value, list):
+                        # IN条件
+                        placeholders = ", ".join(["?" for _ in value])
+                        where_clauses.append(f"{field} IN ({placeholders})")
+                        params.extend(value)
+                    elif isinstance(value, dict):
+                        # 范围条件
+                        if "min" in value and "max" in value:
+                            where_clauses.append(f"{field} BETWEEN ? AND ?")
+                            params.extend([value["min"], value["max"]])
+                        elif "min" in value:
+                            where_clauses.append(f"{field} >= ?")
+                            params.append(value["min"])
+                        elif "max" in value:
+                            where_clauses.append(f"{field} <= ?")
+                            params.append(value["max"])
+                    elif isinstance(value, str) and "%" in value:
+                        # LIKE条件
+                        where_clauses.append(f"{field} LIKE ?")
+                        params.append(value)
+                    else:
+                        # 等值条件
+                        where_clauses.append(f"{field} = ?")
+                        params.append(value)
+
+                if where_clauses:
+                    sql_parts.append("WHERE " + " AND ".join(where_clauses))
+
+            # 添加GROUP BY(如果有聚合字段)
+            if joins and any("purchase_orders" in join for join in joins):
+                sql_parts.append("GROUP BY suppliers.id")
+
+            # 添加排序
+            if order_by:
+                sql_parts.append(f"ORDER BY {order_by}")
+
+            # 添加限制和偏移
+            if limit:
+                sql_parts.append(f"LIMIT {limit}")
+                if offset:
+                    sql_parts.append(f"OFFSET {offset}")
+
+            sql = " ".join(sql_parts)
+            results = self._db.execute_query(sql, tuple(params))
+            return [self._row_to_dict(row) for row in results]
+
+        except Exception as e:
+            self._logger.error(f"复杂条件搜索失败: {e}")
+            raise DatabaseError(f"复杂条件搜索失败: {e}") from e
+
     def get_communication_events(
         self,
         supplier_id: int | None = None,
@@ -462,20 +585,18 @@ class SupplierDAO(ISupplierDAO):
         """插入应付账款记录"""
         try:
             sql = """
-            INSERT INTO supplier_payables (
-                supplier_id, amount, due_date, description,
-                status, created_at, purchase_order_id
-            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO financial_records (
+                supplier_id, record_type, amount, due_date, status, notes, created_at
+            ) VALUES (?, 'payable', ?, ?, ?, ?, ?)
             """
 
             params = (
                 payable_data.get("supplier_id"),
                 payable_data.get("amount"),
                 payable_data.get("due_date"),
-                payable_data.get("description"),
                 payable_data.get("status", "pending"),
+                payable_data.get("description", ""),
                 payable_data.get("created_at"),
-                payable_data.get("purchase_order_id"),
             )
 
             return self._db.execute_insert(sql, params)
@@ -488,20 +609,17 @@ class SupplierDAO(ISupplierDAO):
         """插入供应商付款记录"""
         try:
             sql = """
-            INSERT INTO supplier_payments (
-                supplier_id, amount, payment_method, payment_date,
-                description, created_at, reference_number
-            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO financial_records (
+                supplier_id, record_type, amount, paid_date, status, notes, created_at
+            ) VALUES (?, 'payment', ?, ?, 'paid', ?, ?)
             """
 
             params = (
                 payment_data.get("supplier_id"),
                 payment_data.get("amount"),
-                payment_data.get("payment_method"),
                 payment_data.get("payment_date"),
-                payment_data.get("description"),
+                payment_data.get("description", ""),
                 payment_data.get("created_at"),
-                payment_data.get("reference_number"),
             )
 
             return self._db.execute_insert(sql, params)
@@ -510,33 +628,59 @@ class SupplierDAO(ISupplierDAO):
             self._logger.error(f"插入供应商付款记录失败: {e}")
             raise DatabaseError(f"插入供应商付款记录失败: {e}") from e
 
-    def get_payables(self, supplier_id: int) -> list[dict[str, Any]]:
-        """获取供应商应付账款列表"""
+    def get_payables(self, supplier_id: int = None) -> list[dict[str, Any]]:
+        """获取应付账款列表"""
         try:
-            sql = """
-            SELECT * FROM supplier_payables
-            WHERE supplier_id = ?
-            ORDER BY due_date ASC
-            """
+            if supplier_id:
+                sql = """
+                SELECT fr.*, s.name as supplier_name
+                FROM financial_records fr
+                JOIN suppliers s ON fr.supplier_id = s.id
+                WHERE fr.supplier_id = ? AND fr.record_type = 'payable'
+                ORDER BY fr.due_date ASC
+                """
+                params = (supplier_id,)
+            else:
+                sql = """
+                SELECT fr.*, s.name as supplier_name
+                FROM financial_records fr
+                JOIN suppliers s ON fr.supplier_id = s.id
+                WHERE fr.record_type = 'payable'
+                ORDER BY fr.due_date ASC
+                """
+                params = ()
 
-            results = self._db.execute_query(sql, (supplier_id,))
-            return [self._row_to_dict(row) for row in results]
+            results = self._db.execute_query(sql, params)
+            return [self._financial_row_to_dict(row) for row in results]
 
         except Exception as e:
             self._logger.error(f"获取应付账款列表失败: {e}")
             raise DatabaseError(f"获取应付账款列表失败: {e}") from e
 
-    def get_supplier_payments(self, supplier_id: int) -> list[dict[str, Any]]:
+    def get_supplier_payments(self, supplier_id: int = None) -> list[dict[str, Any]]:
         """获取供应商付款记录"""
         try:
-            sql = """
-            SELECT * FROM supplier_payments
-            WHERE supplier_id = ?
-            ORDER BY payment_date DESC
-            """
+            if supplier_id:
+                sql = """
+                SELECT fr.*, s.name as supplier_name
+                FROM financial_records fr
+                JOIN suppliers s ON fr.supplier_id = s.id
+                WHERE fr.supplier_id = ? AND fr.record_type = 'payment'
+                ORDER BY fr.paid_date DESC
+                """
+                params = (supplier_id,)
+            else:
+                sql = """
+                SELECT fr.*, s.name as supplier_name
+                FROM financial_records fr
+                JOIN suppliers s ON fr.supplier_id = s.id
+                WHERE fr.record_type = 'payment'
+                ORDER BY fr.paid_date DESC
+                """
+                params = ()
 
-            results = self._db.execute_query(sql, (supplier_id,))
-            return [self._row_to_dict(row) for row in results]
+            results = self._db.execute_query(sql, params)
+            return [self._financial_row_to_dict(row) for row in results]
 
         except Exception as e:
             self._logger.error(f"获取供应商付款记录失败: {e}")
@@ -547,35 +691,24 @@ class SupplierDAO(ISupplierDAO):
         try:
             # 总应付账款
             total_sql = """
-            SELECT COALESCE(SUM(amount), 0) FROM supplier_payables
-            WHERE status = 'pending'
+            SELECT COALESCE(SUM(amount), 0) FROM financial_records
+            WHERE record_type = 'payable' AND status = 'pending'
             """
             total_result = self._db.execute_query(total_sql)
             total_amount = total_result[0][0] if total_result else 0
 
             # 逾期应付账款
             overdue_sql = """
-            SELECT COALESCE(SUM(amount), 0) FROM supplier_payables
-            WHERE status = 'pending' AND due_date < date('now')
+            SELECT COALESCE(SUM(amount), 0) FROM financial_records
+            WHERE record_type = 'payable' AND status = 'pending'
+            AND due_date < date('now')
             """
             overdue_result = self._db.execute_query(overdue_sql)
             overdue_amount = overdue_result[0][0] if overdue_result else 0
 
-            # 即将到期的应付账款（7天内）
-            upcoming_sql = """
-            SELECT COALESCE(SUM(amount), 0) FROM supplier_payables
-            WHERE status = 'pending'
-            AND due_date BETWEEN date('now') AND date('now', '+7 days')
-            """
-            upcoming_result = self._db.execute_query(upcoming_sql)
-            upcoming_amount = upcoming_result[0][0] if upcoming_result else 0
-
             return {
                 "total_amount": float(total_amount),
                 "overdue_amount": float(overdue_amount),
-                "upcoming_amount": float(upcoming_amount),
-                "overdue_count": self._count_overdue_payables(),
-                "upcoming_count": self._count_upcoming_payables(),
             }
 
         except Exception as e:
@@ -585,7 +718,11 @@ class SupplierDAO(ISupplierDAO):
     def update_payable_status(self, payable_id: int, status: str) -> bool:
         """更新应付账款状态"""
         try:
-            sql = "UPDATE supplier_payables SET status = ? WHERE id = ?"
+            sql = """
+            UPDATE financial_records
+            SET status = ?, updated_at = CURRENT_TIMESTAMP
+            WHERE id = ? AND record_type = 'payable'
+            """
             rows_affected = self._db.execute_update(sql, (status, payable_id))
             return rows_affected > 0
 
@@ -597,13 +734,13 @@ class SupplierDAO(ISupplierDAO):
         """获取待付款的应付账款"""
         try:
             sql = """
-            SELECT * FROM supplier_payables
-            WHERE supplier_id = ? AND status = 'pending'
+            SELECT * FROM financial_records
+            WHERE supplier_id = ? AND record_type = 'payable' AND status = 'pending'
             ORDER BY due_date ASC
             """
 
             results = self._db.execute_query(sql, (supplier_id,))
-            return [self._row_to_dict(row) for row in results]
+            return [self._financial_row_to_dict(row) for row in results]
 
         except Exception as e:
             self._logger.error(f"获取待付款应付账款失败: {e}")
@@ -682,6 +819,37 @@ class SupplierDAO(ISupplierDAO):
             self._logger.error(f"统计即将到期应付账款失败: {e}")
             return 0
 
+    def _financial_row_to_dict(self, row: Any) -> dict[str, Any]:
+        """
+        将财务记录行转换为字典
+
+        Args:
+            row: 数据库行
+
+        Returns:
+            Dict[str, Any]: 字典格式的数据
+        """
+        if hasattr(row, "keys"):
+            return dict(row)
+        else:
+            # 财务记录表的字段映射
+            columns = [
+                "id",
+                "customer_id",
+                "supplier_id",
+                "contract_id",
+                "record_type",
+                "amount",
+                "due_date",
+                "paid_date",
+                "status",
+                "notes",
+                "created_at",
+                "updated_at",
+                "supplier_name",  # 来自JOIN的字段
+            ]
+            return dict(zip(columns, row, strict=False))
+
     def _row_to_dict(self, row: Any) -> dict[str, Any]:
         """将数据库行转换为字典"""
         if hasattr(row, "keys"):
@@ -690,14 +858,13 @@ class SupplierDAO(ISupplierDAO):
             columns = [
                 "id",
                 "name",
-                "contact_person",
                 "phone",
                 "email",
                 "address",
-                "business_license",
-                "supplier_type_id",
-                "level",
-                "status",
+                "contact_person",
+                "quality_rating",
+                "cooperation_years",
+                "notes",
                 "created_at",
                 "updated_at",
             ]

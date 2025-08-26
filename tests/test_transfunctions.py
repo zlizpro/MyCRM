@@ -1,42 +1,55 @@
 """Tests for transfunctions module."""
 
-from typing import Any, Dict
+from datetime import datetime
+from decimal import Decimal
+from typing import Any
 
-import pytest
-
-# Import transfunctions when they're implemented
-# from transfunctions.business_validation import validate_customer_data
-# from transfunctions.data_formatting import format_currency, format_phone_number
-# from transfunctions.business_calculations import calculate_quote_total
+# Import transfunctions
+from transfunctions import (
+    calculate_customer_value_score,
+    calculate_quote_total,
+    format_currency,
+    format_date,
+    format_phone,
+    validate_customer_data,
+    validate_supplier_data,
+)
 
 
 class TestBusinessValidation:
     """Test business validation functions."""
 
-    def test_validate_customer_data_success(self, sample_customer_data: Dict[str, Any]):
+    def test_validate_customer_data_success(self, sample_customer_data: dict[str, Any]):
         """Test successful customer data validation."""
-        # This test will be implemented when transfunctions are created
-        pytest.skip("Transfunctions not yet implemented")
-
-        # validated = validate_customer_data(sample_customer_data)
-        # assert validated["name"] == sample_customer_data["name"]
-        # assert validated["phone"] == sample_customer_data["phone"]
+        result = validate_customer_data(sample_customer_data)
+        assert result.is_valid is True
+        assert len(result.errors) == 0
 
     def test_validate_customer_data_missing_name(self):
         """Test customer data validation with missing name."""
-        pytest.skip("Transfunctions not yet implemented")
-
-        # data = {"phone": "13812345678"}
-        # with pytest.raises(ValueError, match="客户名称不能为空"):
-        #     validate_customer_data(data)
+        data = {"phone": "13812345678"}
+        result = validate_customer_data(data)
+        assert result.is_valid is False
+        assert any("name" in error for error in result.errors)
 
     def test_validate_customer_data_invalid_phone(self):
         """Test customer data validation with invalid phone."""
-        pytest.skip("Transfunctions not yet implemented")
+        data = {"name": "测试公司", "phone": "invalid"}
+        result = validate_customer_data(data)
+        assert result.is_valid is False
+        assert any("电话号码格式不正确" in error for error in result.errors)
 
-        # data = {"name": "测试公司", "phone": "invalid"}
-        # with pytest.raises(ValueError, match="电话格式不正确"):
-        #     validate_customer_data(data)
+    def test_validate_supplier_data_success(self):
+        """Test successful supplier data validation."""
+        data = {
+            "name": "测试供应商",
+            "contact_person": "张经理",
+            "phone": "13812345678",
+            "email": "test@example.com",
+        }
+        result = validate_supplier_data(data)
+        assert result.is_valid is True
+        assert len(result.errors) == 0
 
 
 class TestDataFormatting:
@@ -44,100 +57,116 @@ class TestDataFormatting:
 
     def test_format_currency(self):
         """Test currency formatting."""
-        pytest.skip("Transfunctions not yet implemented")
-
-        # assert format_currency(12345.67) == "¥12,345.67"
-        # assert format_currency(0) == "¥0.00"
-        # assert format_currency(None) == "¥0.00"
+        assert format_currency(12345.67) == "¥12,345.67"
+        assert format_currency(0) == "¥0.00"
+        assert format_currency(1000) == "¥1,000.00"
 
     def test_format_phone_number(self):
         """Test phone number formatting."""
-        pytest.skip("Transfunctions not yet implemented")
-
-        # assert format_phone_number("13812345678") == "138-1234-5678"
-        # assert format_phone_number("") == ""
-        # assert format_phone_number("invalid") == "invalid"
+        assert format_phone("13812345678") == "138-1234-5678"
+        assert format_phone("") == ""
+        assert format_phone("invalid") == "invalid"
 
     def test_format_date(self):
         """Test date formatting."""
-        pytest.skip("Transfunctions not yet implemented")
+        test_date = datetime(2024, 1, 15, 10, 30, 0)
+        assert "2024-01-15" in format_date(test_date)
 
-        # test_date = datetime(2024, 1, 15, 10, 30, 0)
-        # assert "2024-01-15" in format_date(test_date)
-        # assert "2024年01月15日" in format_date(test_date, "chinese")
+        # Test Chinese format
+        chinese_format = format_date(test_date, "%Y年%m月%d日")
+        assert "2024年01月15日" in chinese_format
 
 
 class TestBusinessCalculations:
     """Test business calculation functions."""
 
-    def test_calculate_quote_total(self, sample_quote_data: Dict[str, Any]):
+    def test_calculate_quote_total(self, sample_quote_data: dict[str, Any]):
         """Test quote total calculation."""
-        pytest.skip("Transfunctions not yet implemented")
+        items = sample_quote_data["items"]
+        result = calculate_quote_total(items)
 
-        # items = sample_quote_data["items"]
-        # result = calculate_quote_total(items)
-        #
-        # expected_subtotal = 10 * 100.0 + 5 * 200.0  # 2000.0
-        # assert result["subtotal"] == expected_subtotal
-        # assert result["tax_rate"] == 0.13
-        # assert result["tax_amount"] == expected_subtotal * 0.13
-        # assert result["total"] == expected_subtotal * 1.13
+        # Check that result contains expected keys
+        assert "total_amount" in result
+        assert "subtotal_before_discount" in result
+        assert "tax_amount" in result
+
+        # Verify the result is a Decimal
+        assert isinstance(result["total_amount"], Decimal)
+        assert result["total_amount"] > 0
 
     def test_calculate_customer_value_score(self):
         """Test customer value score calculation."""
-        pytest.skip("Transfunctions not yet implemented")
+        customer_data = {
+            "id": 1,
+            "created_at": "2023-01-01",
+            "level": "VIP",
+            "industry": "制造业",
+        }
 
-        # customer_data = {
-        #     "total_amount": 50000,
-        #     "transaction_count": 8,
-        #     "cooperation_months": 18,
-        #     "interaction_count": 15,
-        # }
-        #
-        # score = calculate_customer_value_score(customer_data)
-        # assert 0 <= score <= 100
-        # assert isinstance(score, float)
+        transaction_history = [
+            {"amount": 10000, "date": "2024-12-01"},
+            {"amount": 15000, "date": "2024-11-01"},
+        ]
+
+        interaction_history = [
+            {"type": "call", "date": "2024-12-15"},
+            {"type": "meeting", "date": "2024-12-10"},
+        ]
+
+        metrics = calculate_customer_value_score(
+            customer_data, transaction_history, interaction_history
+        )
+
+        assert 0 <= metrics.total_score <= 100
+        assert isinstance(metrics.total_score, float)
+        assert metrics.transaction_value >= 0
+        assert metrics.interaction_score >= 0
+        assert metrics.loyalty_score >= 0
+        assert metrics.potential_score >= 0
 
 
 class TestCRUDTemplates:
     """Test CRUD template functions."""
 
-    def test_crud_create_template(self):
-        """Test CRUD create template."""
-        pytest.skip("Transfunctions not yet implemented")
+    def test_crud_template_basic_functionality(self):
+        """Test basic CRUD template functionality."""
 
-        # Mock DAO for testing
-        # class MockDAO:
-        #     def insert(self, data):
-        #         return 123
-        #
-        # dao = MockDAO()
-        # create_func = crud_create_template(dao, "客户")
-        #
-        # result = create_func({"name": "测试"})
-        # assert result == 123
+        from transfunctions.data_operations import create_crud_template
+
+        # Mock database manager
+        class MockDBManager:
+            def execute_query(self, sql, params):
+                return [{"id": 1, "name": "Test Item"}]
+
+            def execute_insert(self, sql, params):
+                return 1
+
+            def execute_update(self, sql, params):
+                return 1
+
+            def execute_delete(self, sql, params):
+                return 1
+
+        db_manager = MockDBManager()
+        crud_template = create_crud_template("test_table", db_manager)
+
+        # Test that the template was created successfully
+        assert crud_template.table_name == "test_table"
+        assert crud_template.db_manager is db_manager
 
 
 class TestSearchTemplates:
     """Test search template functions."""
 
-    def test_paginated_search_template(self):
-        """Test paginated search template."""
-        pytest.skip("Transfunctions not yet implemented")
+    def test_search_functionality(self):
+        """Test search functionality."""
+        # This is a basic test to ensure the search functions are importable
+        from transfunctions.data_operations import build_search_query
 
-        # Mock DAO for testing
-        # class MockDAO:
-        #     def count(self, where, params):
-        #         return 25
-        #
-        #     def search(self, where, params, offset, limit):
-        #         return [{"id": i, "name": f"Item {i}"} for i in range(offset, offset + limit)]
-        #
-        # dao = MockDAO()
-        # result = paginated_search_template(dao, page=2, page_size=10)
-        #
-        # assert result["total_count"] == 25
-        # assert result["page"] == 2
-        # assert result["page_size"] == 10
-        # assert result["total_pages"] == 3
-        # assert len(result["items"]) == 10
+        # Test basic query building
+        sql, params = build_search_query(
+            table_name="customers", search_fields=["name", "phone"], search_term="test"
+        )
+        assert "customers" in sql
+        assert "name" in sql or "phone" in sql
+        assert isinstance(params, list)

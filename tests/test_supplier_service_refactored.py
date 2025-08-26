@@ -8,7 +8,7 @@ MiniCRM 供应商服务重构后的单元测试
 """
 
 import unittest
-from unittest.mock import Mock, patch
+from unittest.mock import MagicMock, Mock, patch
 
 from minicrm.services.supplier import (
     CommunicationEventType,
@@ -256,7 +256,7 @@ class TestModularArchitecture(unittest.TestCase):
     def test_service_independence(self):
         """测试服务独立性"""
         # 每个服务都应该能够独立实例化
-        moMoc
+        mock_dao = MagicMock()
 
         services = [
             SupplierCoreService(mock_dao),

@@ -78,10 +78,10 @@ self._platform = platform.system().lower()  # 'darwin', 'windows', 'linux'
 
 ### 高DPI检测
 ```python
-from PySide6.QtWidgets import QApplication
-app = QApplication.instance()
-device_pixel_ratio = app.devicePixelRatio()
-self._is_high_dpi = device_pixel_ratio > 1.0
+import tkinter as tk
+root = tk.Tk()
+dpi_scale = root.tk.call('tk', 'scaling')
+self._is_high_dpi = dpi_scale > 1.0
 ```
 
 ### 系统主题检测

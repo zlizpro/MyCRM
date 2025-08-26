@@ -1,8 +1,8 @@
 """
 基础数据访问对象实现
 
-提供通用的数据访问功能，其他DAO可以继承使用。
-集成transfunctions中的CRUD模板，确保代码复用和一致性。
+提供通用的数据访问功能,其他DAO可以继承使用.
+集成transfunctions中的CRUD模板,确保代码复用和一致性.
 """
 
 import logging
@@ -17,7 +17,7 @@ class BaseDAO(IBaseDAO):
     """
     基础数据访问对象
 
-    提供通用的CRUD操作实现，集成transfunctions的CRUD模板
+    提供通用的CRUD操作实现,集成transfunctions的CRUD模板
     """
 
     def __init__(self, database_manager: DatabaseManager, table_name: str):
@@ -118,6 +118,18 @@ class BaseDAO(IBaseDAO):
             int: 记录数量
         """
         return self._crud_template.count(conditions)
+
+    def list_all(self, filters: dict[str, Any] | None = None) -> list[dict[str, Any]]:
+        """
+        获取所有记录
+
+        Args:
+            filters: 过滤条件
+
+        Returns:
+            List[Dict[str, Any]]: 所有记录列表
+        """
+        return self.search(filters)
 
     def _row_to_dict(self, row) -> dict[str, Any]:
         """

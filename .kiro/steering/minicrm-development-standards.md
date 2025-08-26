@@ -1,3 +1,7 @@
+---
+inclusion: always
+---
+
 # MiniCRM 开发标准指导
 
 ## 项目特定要求

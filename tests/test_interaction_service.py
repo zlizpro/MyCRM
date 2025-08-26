@@ -13,8 +13,9 @@ import unittest
 from datetime import datetime, timedelta
 from unittest.mock import MagicMock
 
-from minicrm.core.exceptions import ServiceError, ValidationError
+from minicrm.core.exceptions import ServiceError
 from minicrm.services.interaction_service import InteractionService
+from transfunctions.validation.business import ValidationError
 
 
 class TestInteractionService(unittest.TestCase):

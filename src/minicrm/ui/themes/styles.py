@@ -1,7 +1,7 @@
 """
 MiniCRM 统一样式定义
 
-定义了整个应用程序的统一样式规范，包括：
+定义了整个应用程序的统一样式规范,包括:
 - 颜色规范
 - 字体规范
 - 间距规范
@@ -47,8 +47,8 @@ class StyleTokens:
     """
     样式令牌管理器
 
-    定义了设计系统中的所有样式令牌，确保整个应用程序的视觉一致性。
-    样式令牌是设计系统的基础，包含颜色、字体、间距等基础样式值。
+    定义了设计系统中的所有样式令牌,确保整个应用程序的视觉一致性.
+    样式令牌是设计系统的基础,包含颜色、字体、间距等基础样式值.
     """
 
     def __init__(self, theme_config: dict[str, Any]):
@@ -150,7 +150,7 @@ class ComponentStyleGenerator:
     """
     组件样式生成器
 
-    基于样式令牌生成具体组件的样式，确保组件样式的一致性和可维护性。
+    基于样式令牌生成具体组件的样式,确保组件样式的一致性和可维护性.
     """
 
     def __init__(self, style_tokens: StyleTokens):
@@ -182,11 +182,8 @@ class ComponentStyleGenerator:
             font-family: {self.tokens.get_font_family()};
             font-weight: {self.tokens.get_font_weight("medium")};
             border: none;
-            cursor: pointer;
-            transition: all 0.2s ease;
             text-align: center;
             text-decoration: none;
-            display: inline-block;
             border-radius: {self.tokens.get_border_radius("medium")};
         """
 
@@ -252,7 +249,6 @@ class ComponentStyleGenerator:
             border: 1px solid {self.tokens.get_semantic_color("border")};
             border-radius: {self.tokens.get_border_radius("small")};
             color: {self.tokens.get_semantic_color("text")};
-            transition: border-color 0.2s ease;
         """
 
         size_styles = {
@@ -281,7 +277,6 @@ class ComponentStyleGenerator:
             background-color: {self.tokens.get_semantic_color("surface")};
             border: 1px solid {self.tokens.get_semantic_color("border")};
             border-radius: {self.tokens.get_border_radius("medium")};
-            box-shadow: {self.tokens.get_shadow("small")};
             padding: {self.tokens.get_spacing("md")};
         """
 
@@ -301,7 +296,6 @@ class ComponentStyleGenerator:
             background-color: {self.tokens.get_semantic_color("surface")};
             border: 1px solid {self.tokens.get_semantic_color("border")};
             border-radius: {self.tokens.get_border_radius("medium")};
-            box-shadow: {self.tokens.get_shadow("medium")};
             padding: {self.tokens.get_spacing("xs")};
         """
 
@@ -311,7 +305,6 @@ class ComponentStyleGenerator:
             background-color: {self.tokens.get_semantic_color("background")};
             border: 1px solid {self.tokens.get_semantic_color("border")};
             border-radius: {self.tokens.get_border_radius("large")};
-            box-shadow: {self.tokens.get_shadow("large")};
             padding: {self.tokens.get_spacing("lg")};
         """
 
@@ -320,7 +313,7 @@ class StyleGuide:
     """
     样式指南
 
-    提供设计系统的样式指南和最佳实践，帮助开发者正确使用样式系统。
+    提供设计系统的样式指南和最佳实践,帮助开发者正确使用样式系统.
     """
 
     @staticmethod
@@ -375,9 +368,9 @@ class StyleGuide:
     def get_component_guidelines() -> dict[str, str]:
         """获取组件使用指南"""
         return {
-            "buttons": "使用合适的变体和尺寸，保持操作层级清晰",
-            "inputs": "保持一致的尺寸和样式，提供清晰的状态反馈",
-            "cards": "用于组织相关内容，保持适当的内边距",
+            "buttons": "使用合适的变体和尺寸,保持操作层级清晰",
+            "inputs": "保持一致的尺寸和样式,提供清晰的状态反馈",
+            "cards": "用于组织相关内容,保持适当的内边距",
             "tables": "保持良好的可读性和交互性",
             "menus": "提供清晰的层级结构和导航",
             "dialogs": "保持适当的尺寸和内容组织",

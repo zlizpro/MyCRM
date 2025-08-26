@@ -1,11 +1,12 @@
 """
 Transfunctions - 日期时间格式化
 
-提供日期时间格式化功能。
+提供日期时间格式化功能.
 """
 
 import logging
 from datetime import date, datetime
+
 
 # 配置日志
 logger = logging.getLogger(__name__)
@@ -34,7 +35,7 @@ def format_date(
     """格式化日期
 
     Args:
-        date_value: 日期值（datetime、date对象或字符串）
+        date_value: 日期值(datetime、date对象或字符串)
         format_string: 格式字符串
         locale: 本地化设置
 
@@ -89,7 +90,7 @@ def format_date(
         if locale == "zh_CN" and any(
             char in format_string for char in ["年", "月", "日"]
         ):
-            # 替换中文数字（如果需要）
+            # 替换中文数字(如果需要)
             pass
 
         logger.debug(f"日期格式化: {date_value} -> {formatted_date}")

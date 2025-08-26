@@ -1,7 +1,7 @@
 """
 业务服务层接口定义
 
-定义所有业务服务的接口契约，确保：
+定义所有业务服务的接口契约,确保:
 - 业务逻辑的标准化
 - 服务间的松耦合
 - 易于单元测试
@@ -40,7 +40,7 @@ class ICustomerService(ABC):
             customer_id: 客户ID
 
         Returns:
-            Optional[Dict[str, Any]]: 客户信息，不存在时返回None
+            Optional[Dict[str, Any]]: 客户信息,不存在时返回None
         """
         pass
 
@@ -193,4 +193,213 @@ class IAnalyticsService(ABC):
     @abstractmethod
     def get_trend_analysis(self, metric: str, period: str) -> dict[str, Any]:
         """获取趋势分析"""
+        pass
+
+
+class IBackupService(ABC):
+    """备份管理服务接口"""
+
+    @abstractmethod
+    def create_backup(self, backup_type: str = "full") -> dict[str, Any]:
+        """创建备份"""
+        pass
+
+    @abstractmethod
+    def restore_backup(self, backup_path: str) -> bool:
+        """恢复备份"""
+        pass
+
+    @abstractmethod
+    def list_backups(self) -> list[dict[str, Any]]:
+        """列出所有备份"""
+        pass
+
+    @abstractmethod
+    def delete_backup(self, backup_id: str) -> bool:
+        """删除备份"""
+        pass
+
+
+class IContractService(ABC):
+    """合同管理服务接口"""
+
+    @abstractmethod
+    def create_contract(self, contract_data: dict[str, Any]) -> int:
+        """创建合同"""
+        pass
+
+    @abstractmethod
+    def get_contract(self, contract_id: int) -> dict[str, Any] | None:
+        """获取合同信息"""
+        pass
+
+    @abstractmethod
+    def update_contract(self, contract_id: int, data: dict[str, Any]) -> bool:
+        """更新合同信息"""
+        pass
+
+    @abstractmethod
+    def delete_contract(self, contract_id: int) -> bool:
+        """删除合同"""
+        pass
+
+    @abstractmethod
+    def search_contracts(
+        self,
+        query: str = "",
+        filters: dict[str, Any] | None = None,
+        page: int = 1,
+        page_size: int = 20,
+    ) -> tuple[list[dict[str, Any]], int]:
+        """搜索合同"""
+        pass
+
+
+class IQuoteService(ABC):
+    """报价管理服务接口"""
+
+    @abstractmethod
+    def create_quote(self, quote_data: dict[str, Any]) -> int:
+        """创建报价"""
+        pass
+
+    @abstractmethod
+    def get_quote(self, quote_id: int) -> dict[str, Any] | None:
+        """获取报价信息"""
+        pass
+
+    @abstractmethod
+    def update_quote(self, quote_id: int, data: dict[str, Any]) -> bool:
+        """更新报价信息"""
+        pass
+
+    @abstractmethod
+    def delete_quote(self, quote_id: int) -> bool:
+        """删除报价"""
+        pass
+
+    @abstractmethod
+    def search_quotes(
+        self,
+        query: str = "",
+        filters: dict[str, Any] | None = None,
+        page: int = 1,
+        page_size: int = 20,
+    ) -> tuple[list[dict[str, Any]], int]:
+        """搜索报价"""
+        pass
+
+
+class IImportExportService(ABC):
+    """数据导入导出服务接口"""
+
+    @abstractmethod
+    def import_data(
+        self, file_path: str, data_type: str, options: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
+        """导入数据"""
+        pass
+
+    @abstractmethod
+    def export_data(
+        self,
+        data_type: str,
+        filters: dict[str, Any] | None = None,
+        format: str = "excel",
+    ) -> str:
+        """导出数据"""
+        pass
+
+    @abstractmethod
+    def get_import_templates(self) -> list[dict[str, Any]]:
+        """获取导入模板"""
+        pass
+
+    @abstractmethod
+    def validate_import_file(self, file_path: str, data_type: str) -> dict[str, Any]:
+        """验证导入文件"""
+        pass
+
+
+class ISettingsService(ABC):
+    """设置管理服务接口"""
+
+    @abstractmethod
+    def get_setting(self, category: str, key: str | None = None) -> Any:
+        """获取设置值"""
+        pass
+
+    @abstractmethod
+    def set_setting(self, category: str, key: str, value: Any) -> None:
+        """设置值"""
+        pass
+
+    @abstractmethod
+    def update_settings(self, category: str, settings: dict[str, Any]) -> None:
+        """批量更新设置"""
+        pass
+
+    @abstractmethod
+    def reset_settings(self, category: str | None = None) -> None:
+        """重置设置到默认值"""
+        pass
+
+    @abstractmethod
+    def get_all_settings(self) -> dict[str, Any]:
+        """获取所有设置"""
+        pass
+
+    @abstractmethod
+    def export_settings(self, file_path: str) -> None:
+        """导出设置到文件"""
+        pass
+
+    @abstractmethod
+    def import_settings(self, file_path: str, merge: bool = True) -> None:
+        """从文件导入设置"""
+        pass
+
+
+class ITaskService(ABC):
+    """任务管理服务接口"""
+
+    @abstractmethod
+    def create_task(self, task_data: dict[str, Any]) -> int:
+        """创建任务"""
+        pass
+
+    @abstractmethod
+    def get_task(self, task_id: int) -> dict[str, Any] | None:
+        """获取任务信息"""
+        pass
+
+    @abstractmethod
+    def update_task(self, task_id: int, data: dict[str, Any]) -> bool:
+        """更新任务信息"""
+        pass
+
+    @abstractmethod
+    def delete_task(self, task_id: int) -> bool:
+        """删除任务"""
+        pass
+
+    @abstractmethod
+    def search_tasks(
+        self,
+        query: str = "",
+        filters: dict[str, Any] | None = None,
+        page: int = 1,
+        page_size: int = 20,
+    ) -> tuple[list[dict[str, Any]], int]:
+        """搜索任务"""
+        pass
+
+    @abstractmethod
+    def get_pending_tasks(self, limit: int = 10) -> list[dict[str, Any]]:
+        """获取待办任务"""
+        pass
+
+    @abstractmethod
+    def mark_task_completed(self, task_id: int) -> bool:
+        """标记任务为已完成"""
         pass

@@ -1,158 +1,408 @@
 """
-MiniCRM 常量定义
+MiniCRM系统常量定义
 
-定义了应用程序中使用的所有常量，包括：
-- 应用程序信息
-- 数据库配置常量
-- UI配置常量
-- 业务规则常量
-- 文件路径常量
-- 默认值常量
+定义了系统中使用的所有枚举类型和配置常量.
+这些常量确保了数据的一致性和系统的可维护性.
+
+包含的常量类型:
+- 业务枚举:客户等级、供应商等级、交互类型等
+- 系统配置:数据库配置、UI配置、默认设置等
+- 格式常量:日期格式、货币格式等
 """
 
-# 应用程序信息
+from enum import Enum, IntEnum
+from pathlib import Path
+
+
+# ==================== 业务枚举类型 ====================
+
+
+class CustomerLevel(Enum):
+    """
+    客户等级枚举
+
+    定义了客户的重要性等级,用于差异化服务和资源分配.
+    """
+
+    VIP = "vip"  # VIP客户 - 最高等级
+    IMPORTANT = "important"  # 重要客户 - 高等级
+    NORMAL = "normal"  # 普通客户 - 标准等级
+    POTENTIAL = "potential"  # 潜在客户 - 待开发
+
+    @property
+    def display_name(self) -> str:
+        """返回显示名称"""
+        names = {
+            self.VIP: "VIP客户",
+            self.IMPORTANT: "重要客户",
+            self.NORMAL: "普通客户",
+            self.POTENTIAL: "潜在客户",
+        }
+        return names[self]
+
+    @property
+    def color(self) -> str:
+        """返回对应的颜色代码"""
+        colors = {
+            self.VIP: "#FF6B6B",  # 红色
+            self.IMPORTANT: "#4ECDC4",  # 青色
+            self.NORMAL: "#45B7D1",  # 蓝色
+            self.POTENTIAL: "#96CEB4",  # 绿色
+        }
+        return colors[self]
+
+
+class SupplierLevel(Enum):
+    """
+    供应商等级枚举
+
+    定义了供应商的重要性和合作等级.
+    """
+
+    STRATEGIC = "strategic"  # 战略供应商 - 核心合作伙伴
+    IMPORTANT = "important"  # 重要供应商 - 主要合作伙伴
+    NORMAL = "normal"  # 普通供应商 - 标准合作
+    BACKUP = "backup"  # 备选供应商 - 备用选择
+
+    @property
+    def display_name(self) -> str:
+        """返回显示名称"""
+        names = {
+            self.STRATEGIC: "战略供应商",
+            self.IMPORTANT: "重要供应商",
+            self.NORMAL: "普通供应商",
+            self.BACKUP: "备选供应商",
+        }
+        return names[self]
+
+
+class InteractionType(Enum):
+    """
+    互动类型枚举
+
+    定义了与客户/供应商的各种互动类型.
+    """
+
+    PHONE_CALL = "phone_call"  # 电话沟通
+    EMAIL = "email"  # 邮件沟通
+    MEETING = "meeting"  # 会议
+    VISIT = "visit"  # 拜访
+    COMPLAINT = "complaint"  # 投诉处理
+    CONSULTATION = "consultation"  # 咨询服务
+    FOLLOW_UP = "follow_up"  # 跟进
+    OTHER = "other"  # 其他
+
+    @property
+    def display_name(self) -> str:
+        """返回显示名称"""
+        names = {
+            self.PHONE_CALL: "电话沟通",
+            self.EMAIL: "邮件沟通",
+            self.MEETING: "会议",
+            self.VISIT: "拜访",
+            self.COMPLAINT: "投诉处理",
+            self.CONSULTATION: "咨询服务",
+            self.FOLLOW_UP: "跟进",
+            self.OTHER: "其他",
+        }
+        return names[self]
+
+
+class ContractStatus(Enum):
+    """
+    合同状态枚举
+
+    定义了合同的各种状态.
+    """
+
+    DRAFT = "draft"  # 草稿
+    PENDING = "pending"  # 待审核
+    APPROVED = "approved"  # 已审核
+    SIGNED = "signed"  # 已签署
+    ACTIVE = "active"  # 执行中
+    COMPLETED = "completed"  # 已完成
+    CANCELLED = "cancelled"  # 已取消
+    EXPIRED = "expired"  # 已过期
+
+    @property
+    def display_name(self) -> str:
+        """返回显示名称"""
+        names = {
+            self.DRAFT: "草稿",
+            self.PENDING: "待审核",
+            self.APPROVED: "已审核",
+            self.SIGNED: "已签署",
+            self.ACTIVE: "执行中",
+            self.COMPLETED: "已完成",
+            self.CANCELLED: "已取消",
+            self.EXPIRED: "已过期",
+        }
+        return names[self]
+
+
+class QuoteStatus(Enum):
+    """
+    报价状态枚举
+
+    定义了报价的各种状态.
+    """
+
+    DRAFT = "draft"  # 草稿
+    SENT = "sent"  # 已发送
+    VIEWED = "viewed"  # 已查看
+    ACCEPTED = "accepted"  # 已接受
+    REJECTED = "rejected"  # 已拒绝
+    EXPIRED = "expired"  # 已过期
+    CANCELLED = "cancelled"  # 已取消
+
+    @property
+    def display_name(self) -> str:
+        """返回显示名称"""
+        names = {
+            self.DRAFT: "草稿",
+            self.SENT: "已发送",
+            self.VIEWED: "已查看",
+            self.ACCEPTED: "已接受",
+            self.REJECTED: "已拒绝",
+            self.EXPIRED: "已过期",
+            self.CANCELLED: "已取消",
+        }
+        return names[self]
+
+
+class ServiceTicketStatus(Enum):
+    """
+    售后工单状态枚举
+
+    定义了售后服务工单的各种状态.
+    """
+
+    OPEN = "open"  # 已开启
+    IN_PROGRESS = "in_progress"  # 处理中
+    PENDING = "pending"  # 等待中
+    RESOLVED = "resolved"  # 已解决
+    CLOSED = "closed"  # 已关闭
+    CANCELLED = "cancelled"  # 已取消
+
+    @property
+    def display_name(self) -> str:
+        """返回显示名称"""
+        names = {
+            self.OPEN: "已开启",
+            self.IN_PROGRESS: "处理中",
+            self.PENDING: "等待中",
+            self.RESOLVED: "已解决",
+            self.CLOSED: "已关闭",
+            self.CANCELLED: "已取消",
+        }
+        return names[self]
+
+
+class Priority(IntEnum):
+    """
+    优先级枚举
+
+    定义了任务、工单等的优先级.
+    使用IntEnum以便进行数值比较.
+    """
+
+    LOW = 1  # 低优先级
+    NORMAL = 2  # 普通优先级
+    HIGH = 3  # 高优先级
+    URGENT = 4  # 紧急
+    CRITICAL = 5  # 严重
+
+    @property
+    def display_name(self) -> str:
+        """返回显示名称"""
+        names = {
+            self.LOW: "低",
+            self.NORMAL: "普通",
+            self.HIGH: "高",
+            self.URGENT: "紧急",
+            self.CRITICAL: "严重",
+        }
+        return names[self]
+
+    @property
+    def color(self) -> str:
+        """返回对应的颜色代码"""
+        colors = {
+            self.LOW: "#28A745",  # 绿色
+            self.NORMAL: "#17A2B8",  # 青色
+            self.HIGH: "#FFC107",  # 黄色
+            self.URGENT: "#FD7E14",  # 橙色
+            self.CRITICAL: "#DC3545",  # 红色
+        }
+        return colors[self]
+
+
+# ==================== 系统配置常量 ====================
+
+# 应用程序基本信息
 APP_NAME = "MiniCRM"
 APP_VERSION = "1.0.0"
-APP_DESCRIPTION = "轻量级客户关系管理系统"
-APP_AUTHOR = "MiniCRM Team"
-APP_COPYRIGHT = "© 2025 MiniCRM Team"
+APP_DESCRIPTION = "跨平台客户关系管理系统"
+APP_AUTHOR = "MiniCRM开发团队"
+
+# 文件和目录路径
+HOME_DIR = Path.home()
+APP_DATA_DIR = HOME_DIR / ".minicrm"
+CONFIG_DIR = APP_DATA_DIR / "config"
+LOG_DIR = APP_DATA_DIR / "logs"
+BACKUP_DIR = APP_DATA_DIR / "backups"
+TEMPLATE_DIR = APP_DATA_DIR / "templates"
+EXPORT_DIR = APP_DATA_DIR / "exports"
 
 # 数据库配置
-DEFAULT_DB_NAME = "minicrm.db"
-DB_VERSION = "1.0"
-DB_TIMEOUT = 30.0  # 秒
-DB_MAX_CONNECTIONS = 10
-
-# 文件大小限制（字节）
-MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
-MAX_BACKUP_SIZE = 100 * 1024 * 1024  # 100MB
-MAX_LOG_FILE_SIZE = 10 * 1024 * 1024  # 10MB
-
-# 分页配置
-DEFAULT_PAGE_SIZE = 20
-MAX_PAGE_SIZE = 100
-MIN_PAGE_SIZE = 5
+DATABASE_CONFIG = {
+    "default_name": "minicrm.db",
+    "default_path": APP_DATA_DIR / "minicrm.db",
+    "backup_interval": 24,  # 小时
+    "max_backups": 30,  # 保留备份数量
+    "connection_timeout": 30,  # 秒
+    "pragma_settings": {
+        "journal_mode": "WAL",
+        "synchronous": "NORMAL",
+        "cache_size": -64000,  # 64MB
+        "temp_store": "MEMORY",
+        "mmap_size": 268435456,  # 256MB
+    },
+}
 
 # UI配置
-DEFAULT_WINDOW_WIDTH = 1280
-DEFAULT_WINDOW_HEIGHT = 800
-MIN_WINDOW_WIDTH = 800
-MIN_WINDOW_HEIGHT = 600
-DEFAULT_SIDEBAR_WIDTH = 250
-
-# 字体配置
-DEFAULT_FONT_FAMILY = "Microsoft YaHei UI"
-DEFAULT_FONT_SIZE = 9
-HEADING_FONT_SIZE = 12
-SMALL_FONT_SIZE = 8
-
-# 颜色配置
-COLORS = {
-    # 主色调
-    "primary": "#007BFF",
-    "secondary": "#6C757D",
-    "success": "#28A745",
-    "warning": "#FFC107",
-    "danger": "#DC3545",
-    "info": "#17A2B8",
-    # 背景色
-    "bg_primary": "#FFFFFF",
-    "bg_secondary": "#F8F9FA",
-    "bg_dark": "#343A40",
-    # 文字色
-    "text_primary": "#212529",
-    "text_secondary": "#6C757D",
-    "text_muted": "#ADB5BD",
-    "text_white": "#FFFFFF",
-    # 边框色
-    "border_light": "#DEE2E6",
-    "border_dark": "#495057",
+UI_CONFIG = {
+    "window": {
+        "min_width": 1024,
+        "min_height": 768,
+        "default_width": 1280,
+        "default_height": 800,
+    },
+    "theme": {"default": "light", "available": ["light", "dark"]},
+    "fonts": {
+        "default": ("Microsoft YaHei UI", 9),
+        "heading": ("Microsoft YaHei UI", 12, "bold"),
+        "small": ("Microsoft YaHei UI", 8),
+        "monospace": ("Consolas", 9),
+    },
+    "colors": {
+        "light": {
+            "bg_primary": "#FFFFFF",
+            "bg_secondary": "#F8F9FA",
+            "text_primary": "#212529",
+            "text_secondary": "#6C757D",
+            "accent": "#007BFF",
+            "success": "#28A745",
+            "warning": "#FFC107",
+            "danger": "#DC3545",
+            "border": "#DEE2E6",
+        },
+        "dark": {
+            "bg_primary": "#2B2B2B",
+            "bg_secondary": "#3C3C3C",
+            "text_primary": "#FFFFFF",
+            "text_secondary": "#CCCCCC",
+            "accent": "#4A9EFF",
+            "success": "#4CAF50",
+            "warning": "#FF9800",
+            "danger": "#F44336",
+            "border": "#555555",
+        },
+    },
+    "pagination": {"default_page_size": 50, "page_size_options": [25, 50, 100, 200]},
 }
 
-# 深色主题颜色
-DARK_COLORS = {
-    "primary": "#4A9EFF",
-    "secondary": "#ADB5BD",
-    "success": "#4CAF50",
-    "warning": "#FF9800",
-    "danger": "#F44336",
-    "info": "#2196F3",
-    "bg_primary": "#2B2B2B",
-    "bg_secondary": "#3C3C3C",
-    "bg_dark": "#1E1E1E",
-    "text_primary": "#FFFFFF",
-    "text_secondary": "#CCCCCC",
-    "text_muted": "#999999",
-    "text_white": "#FFFFFF",
-    "border_light": "#555555",
-    "border_dark": "#777777",
+# 日志配置
+LOG_CONFIG = {
+    "level": "INFO",
+    "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    "date_format": "%Y-%m-%d %H:%M:%S",
+    "max_file_size": 10 * 1024 * 1024,  # 10MB
+    "backup_count": 5,
+    "encoding": "utf-8",
 }
 
-# 业务规则常量
-BUSINESS_RULES = {
-    # 客户相关
-    "max_customer_name_length": 100,
-    "max_customer_phone_length": 20,
-    "max_customer_email_length": 100,
-    "max_customer_address_length": 200,
-    "max_customer_notes_length": 1000,
-    # 供应商相关
-    "max_supplier_name_length": 100,
-    "max_supplier_contact_length": 50,
-    "max_supplier_phone_length": 20,
-    "max_supplier_email_length": 100,
-    "max_supplier_address_length": 200,
-    # 合同相关
-    "max_contract_title_length": 200,
-    "max_contract_description_length": 2000,
-    "min_contract_amount": 0.01,
-    "max_contract_amount": 999999999.99,
-    # 报价相关
-    "max_quote_title_length": 200,
-    "max_quote_description_length": 1000,
-    "default_quote_validity_days": 30,
-    "max_quote_validity_days": 365,
-    # 互动记录相关
-    "max_interaction_title_length": 200,
-    "max_interaction_content_length": 2000,
-    # 任务相关
-    "max_task_title_length": 200,
-    "max_task_description_length": 1000,
-    "default_task_priority": "normal",
+# 数据验证配置
+VALIDATION_CONFIG = {
+    "phone_pattern": r"^1[3-9]\d{9}$",
+    "email_pattern": r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$",
+    "max_text_length": 1000,
+    "max_name_length": 100,
+    "max_phone_length": 20,
+    "max_email_length": 100,
+    "currency_precision": 2,
 }
 
-# 文件路径常量
-FILE_PATHS = {
-    "config_dir": "config",
-    "data_dir": "data",
-    "logs_dir": "logs",
-    "backups_dir": "backups",
-    "templates_dir": "templates",
-    "exports_dir": "exports",
-    "imports_dir": "imports",
+# 业务规则配置
+BUSINESS_CONFIG = {
+    "customer": {
+        "default_level": CustomerLevel.NORMAL,
+        "max_credit_limit": 10000000,  # 1000万
+        "credit_check_threshold": 100000,  # 10万
+    },
+    "supplier": {
+        "default_level": SupplierLevel.NORMAL,
+        "max_payment_days": 180,
+        "quality_score_range": (0, 100),
+    },
+    "quote": {
+        "default_validity_days": 30,
+        "max_validity_days": 365,
+        "auto_expire_check_interval": 24,  # 小时
+    },
+    "contract": {
+        "default_duration_months": 12,
+        "max_duration_months": 60,
+        "renewal_notice_days": 30,
+    },
 }
 
-# 文件扩展名
-FILE_EXTENSIONS = {
-    "database": ".db",
-    "backup": ".bak",
-    "log": ".log",
-    "config": ".json",
-    "export_excel": ".xlsx",
-    "export_csv": ".csv",
-    "export_pdf": ".pdf",
-    "export_word": ".docx",
-    "template": ".template",
+# 文档模板配置
+DOCUMENT_CONFIG = {
+    "templates": {
+        "quote": "quote_template.docx",
+        "contract": "contract_template.docx",
+        "invoice": "invoice_template.docx",
+    },
+    "export_formats": ["pdf", "docx", "xlsx"],
+    "max_file_size": 50 * 1024 * 1024,  # 50MB
+    "allowed_extensions": [".docx", ".xlsx", ".pdf", ".csv"],
 }
+
+# 默认配置汇总
+DEFAULT_CONFIG = {
+    "app": {
+        "name": APP_NAME,
+        "version": APP_VERSION,
+        "description": APP_DESCRIPTION,
+        "author": APP_AUTHOR,
+    },
+    "database": DATABASE_CONFIG,
+    "ui": UI_CONFIG,
+    "logging": LOG_CONFIG,
+    "validation": VALIDATION_CONFIG,
+    "business": BUSINESS_CONFIG,
+    "document": DOCUMENT_CONFIG,
+    "directories": {
+        "app_data": str(APP_DATA_DIR),
+        "config": str(CONFIG_DIR),
+        "logs": str(LOG_DIR),
+        "backups": str(BACKUP_DIR),
+        "templates": str(TEMPLATE_DIR),
+        "exports": str(EXPORT_DIR),
+    },
+}
+
+# ==================== 格式化常量 ====================
 
 # 日期时间格式
 DATE_FORMATS = {
-    "date": "%Y-%m-%d",
+    "default": "%Y-%m-%d",
+    "display": "%Y年%m月%d日",
     "datetime": "%Y-%m-%d %H:%M:%S",
+    "datetime_display": "%Y年%m月%d日 %H:%M:%S",
     "time": "%H:%M:%S",
-    "display_date": "%Y年%m月%d日",
-    "display_datetime": "%Y年%m月%d日 %H:%M:%S",
-    "filename_datetime": "%Y%m%d_%H%M%S",
+    "filename": "%Y%m%d_%H%M%S",
 }
 
 # 货币格式
@@ -160,200 +410,99 @@ CURRENCY_FORMATS = {
     "symbol": "¥",
     "decimal_places": 2,
     "thousands_separator": ",",
-    "decimal_separator": ".",
+    "format_string": "¥{:,.2f}",
 }
+
+# 文件大小格式
+FILE_SIZE_UNITS = ["B", "KB", "MB", "GB", "TB"]
 
 # 电话号码格式
 PHONE_FORMATS = {
-    "mobile_pattern": r"^1[3-9]\d{9}$",
-    "landline_pattern": r"^0\d{2,3}-?\d{7,8}$",
-    "display_format": "{}-{}-{}",  # 138-1234-5678
+    "mobile": r"^1[3-9]\d{9}$",
+    "landline": r"^0\d{2,3}-?\d{7,8}$",
+    "display_mobile": "{}-{}-{}",  # 138-1234-5678
+    "display_landline": "{}-{}",  # 021-12345678
 }
 
-# 邮箱格式
-EMAIL_PATTERN = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+# ==================== 错误代码常量 ====================
 
-# 缓存配置
-CACHE_CONFIG = {
-    "default_ttl": 300,  # 5分钟
-    "max_size": 1000,
-    "cleanup_interval": 600,  # 10分钟
+ERROR_CODES = {
+    # 通用错误
+    "UNKNOWN_ERROR": "未知错误",
+    "INVALID_PARAMETER": "参数无效",
+    "OPERATION_FAILED": "操作失败",
+    # 验证错误
+    "VALIDATION_FAILED": "数据验证失败",
+    "REQUIRED_FIELD_MISSING": "必填字段缺失",
+    "INVALID_FORMAT": "格式不正确",
+    "VALUE_OUT_OF_RANGE": "值超出范围",
+    # 数据库错误
+    "DATABASE_CONNECTION_FAILED": "数据库连接失败",
+    "DATABASE_QUERY_FAILED": "数据库查询失败",
+    "DATABASE_TRANSACTION_FAILED": "数据库事务失败",
+    "RECORD_NOT_FOUND": "记录不存在",
+    "DUPLICATE_RECORD": "记录重复",
+    # 业务逻辑错误
+    "BUSINESS_RULE_VIOLATION": "违反业务规则",
+    "INSUFFICIENT_PERMISSION": "权限不足",
+    "RESOURCE_LOCKED": "资源被锁定",
+    "OPERATION_NOT_ALLOWED": "操作不被允许",
+    # 配置错误
+    "CONFIG_FILE_NOT_FOUND": "配置文件不存在",
+    "CONFIG_PARSE_ERROR": "配置解析错误",
+    "INVALID_CONFIG_VALUE": "配置值无效",
+    # UI错误
+    "UI_COMPONENT_INIT_FAILED": "UI组件初始化失败",
+    "THEME_LOAD_FAILED": "主题加载失败",
+    "WINDOW_DISPLAY_FAILED": "窗口显示失败",
 }
 
-# 性能配置
-PERFORMANCE_CONFIG = {
-    "db_query_timeout": 30,  # 秒
-    "ui_update_interval": 100,  # 毫秒
-    "auto_save_interval": 300,  # 5分钟
-    "backup_interval": 3600,  # 1小时
-}
 
-# 日志配置
-LOG_CONFIG = {
-    "default_level": "INFO",
-    "max_file_size": 10 * 1024 * 1024,  # 10MB
-    "backup_count": 5,
-    "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    "date_format": "%Y-%m-%d %H:%M:%S",
-}
+# ==================== 工具函数 ====================
 
-# 网络配置
-NETWORK_CONFIG = {
-    "timeout": 30,  # 秒
-    "max_retries": 3,
-    "retry_delay": 1,  # 秒
-}
 
-# 导入导出配置
-IMPORT_EXPORT_CONFIG = {
-    "max_import_rows": 10000,
-    "batch_size": 1000,
-    "supported_formats": ["csv", "xlsx", "json"],
-    "csv_encoding": "utf-8",
-    "excel_sheet_name": "数据",
-}
+def get_enum_choices(enum_class) -> dict[str, str]:
+    """
+    获取枚举类的选择项
 
-# 搜索配置
-SEARCH_CONFIG = {
-    "min_search_length": 2,
-    "max_search_results": 100,
-    "search_delay": 300,  # 毫秒
-    "highlight_color": "#FFFF00",
-}
+    Args:
+        enum_class: 枚举类
 
-# 通知配置
-NOTIFICATION_CONFIG = {
-    "default_duration": 5000,  # 5秒
-    "max_notifications": 10,
-    "auto_dismiss": True,
-    "position": "top-right",
-}
+    Returns:
+        包含枚举值和显示名称的字典
+    """
+    if hasattr(enum_class, "display_name"):
+        return {item.value: item.display_name for item in enum_class}
+    else:
+        return {item.value: item.name for item in enum_class}
 
-# 备份配置
-BACKUP_CONFIG = {
-    "auto_backup": True,
-    "backup_interval": 24,  # 小时
-    "max_backups": 7,
-    "compress_backups": True,
-}
 
-# 安全配置
-SECURITY_CONFIG = {
-    "password_min_length": 8,
-    "session_timeout": 3600,  # 1小时
-    "max_login_attempts": 5,
-    "lockout_duration": 300,  # 5分钟
-}
+def get_enum_by_value(enum_class, value):
+    """
+    根据值获取枚举项
 
-# API配置（为将来扩展预留）
-API_CONFIG = {
-    "version": "v1",
-    "timeout": 30,
-    "max_requests_per_minute": 60,
-    "base_url": "http://localhost:8000/api",
-}
+    Args:
+        enum_class: 枚举类
+        value: 枚举值
 
-# 板材行业特定常量
-BOARD_INDUSTRY = {
-    # 产品类别
-    "product_categories": [
-        "生态板",
-        "家具板",
-        "阻燃板",
-        "胶合板",
-        "刨花板",
-        "中密度纤维板",
-        "定向刨花板",
-        "细木工板",
-    ],
-    # 质量等级
-    "quality_grades": ["优等品", "一等品", "合格品"],
-    # 规格尺寸（毫米）
-    "standard_sizes": [
-        "1220x2440",
-        "1525x2440",
-        "1830x2440",
-        "1220x3050",
-        "1525x3050",
-    ],
-    # 厚度规格（毫米）
-    "standard_thickness": [3, 5, 9, 12, 15, 18, 25],
-    # 计量单位
-    "units": ["张", "立方米", "平方米", "吨"],
-}
+    Returns:
+        枚举项,如果不存在则返回None
+    """
+    try:
+        return enum_class(value)
+    except ValueError:
+        return None
 
-# 错误消息
-ERROR_MESSAGES = {
-    "validation_failed": "数据验证失败",
-    "database_error": "数据库操作失败",
-    "file_not_found": "文件不存在",
-    "permission_denied": "权限不足",
-    "network_error": "网络连接失败",
-    "timeout_error": "操作超时",
-    "unknown_error": "未知错误",
-}
 
-# 成功消息
-SUCCESS_MESSAGES = {
-    "save_success": "保存成功",
-    "delete_success": "删除成功",
-    "import_success": "导入成功",
-    "export_success": "导出成功",
-    "backup_success": "备份成功",
-    "restore_success": "恢复成功",
-}
+def validate_enum_value(enum_class, value) -> bool:
+    """
+    验证值是否为有效的枚举值
 
-# 确认消息
-CONFIRM_MESSAGES = {
-    "delete_confirm": "确定要删除这条记录吗？",
-    "exit_confirm": "确定要退出程序吗？",
-    "overwrite_confirm": "文件已存在，是否覆盖？",
-    "reset_confirm": "确定要重置所有设置吗？",
-}
+    Args:
+        enum_class: 枚举类
+        value: 要验证的值
 
-# 应用程序状态
-APP_STATES = {
-    "initializing": "初始化中",
-    "ready": "就绪",
-    "loading": "加载中",
-    "saving": "保存中",
-    "error": "错误",
-    "closing": "关闭中",
-}
-
-# 快捷键
-SHORTCUTS = {
-    "new": "Ctrl+N",
-    "open": "Ctrl+O",
-    "save": "Ctrl+S",
-    "save_as": "Ctrl+Shift+S",
-    "find": "Ctrl+F",
-    "refresh": "F5",
-    "exit": "Alt+F4",
-    "copy": "Ctrl+C",
-    "paste": "Ctrl+V",
-    "cut": "Ctrl+X",
-    "undo": "Ctrl+Z",
-    "redo": "Ctrl+Y",
-}
-
-# 正则表达式模式
-REGEX_PATTERNS = {
-    "phone": r"^1[3-9]\d{9}$",
-    "email": r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$",
-    "id_card": r"^\d{17}[\dXx]$",
-    "postal_code": r"^\d{6}$",
-    "chinese_name": r"^[\u4e00-\u9fa5]{2,10}$",
-    "number": r"^\d+(\.\d+)?$",
-    "positive_number": r"^[1-9]\d*(\.\d+)?$",
-}
-
-# 版本信息
-VERSION_INFO = {
-    "major": 1,
-    "minor": 0,
-    "patch": 0,
-    "build": 1,
-    "release_date": "2025-01-15",
-    "codename": "初始版本",
-}
+    Returns:
+        是否为有效枚举值
+    """
+    return get_enum_by_value(enum_class, value) is not None

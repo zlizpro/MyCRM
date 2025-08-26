@@ -1,13 +1,13 @@
 """
 MiniCRM 财务管理服务
 
-提供客户财务相关的业务逻辑处理，包括：
+提供客户财务相关的业务逻辑处理,包括:
 - 应收账款和授信管理
 - 客户收款管理
 - 客户财务风险评估和预警
 
-严格遵循分层架构和模块化原则：
-- 只处理业务逻辑，不包含UI逻辑
+严格遵循分层架构和模块化原则:
+- 只处理业务逻辑,不包含UI逻辑
 - 通过DAO接口访问数据
 - 强制使用transfunctions进行验证和计算
 - 文件大小控制在推荐范围内
@@ -27,13 +27,13 @@ class FinanceService:
     """
     财务管理服务实现
 
-    负责客户财务相关的核心业务逻辑：
+    负责客户财务相关的核心业务逻辑:
     - 应收账款管理
     - 客户授信管理
     - 客户财务风险评估和预警
     - 收款记录管理
 
-    严格遵循单一职责原则和模块化标准。
+    严格遵循单一职责原则和模块化标准.
     """
 
     def __init__(self, customer_dao: CustomerDAO, supplier_dao: SupplierDAO):
@@ -55,7 +55,7 @@ class FinanceService:
         """
         管理客户授信额度
 
-        业务逻辑：
+        业务逻辑:
         1. 验证客户存在
         2. 验证授信数据
         3. 计算风险评估
@@ -63,7 +63,7 @@ class FinanceService:
 
         Args:
             customer_id: 客户ID
-            credit_data: 授信数据，包含授信金额、期限等
+            credit_data: 授信数据,包含授信金额、期限等
 
         Returns:
             Dict[str, Any]: 授信管理结果
@@ -225,7 +225,7 @@ class FinanceService:
         """
         财务风险评估和预警
 
-        基于以下维度评估财务风险：
+        基于以下维度评估财务风险:
         - 应收账款逾期情况
         - 授信额度使用率
         - 历史付款记录
@@ -333,6 +333,29 @@ class FinanceService:
             self._logger.error(f"获取财务汇总失败: {e}")
             raise ServiceError(f"获取财务汇总失败: {e}") from e
 
+    def get_total_receivables(self) -> float:
+        """
+        获取应收账款总额
+
+        用于仪表盘显示应收账款总额指标.
+
+        Returns:
+            float: 应收账款总额
+
+        Raises:
+            ServiceError: 当获取失败时
+        """
+        try:
+            receivables_summary = self._customer_dao.get_receivables_summary()
+            total_receivables = receivables_summary.get("total_amount", 0)
+
+            self._logger.debug(f"获取应收账款总额: {total_receivables}")
+            return float(total_receivables)
+
+        except Exception as e:
+            self._logger.error(f"获取应收账款总额失败: {e}")
+            raise ServiceError(f"获取应收账款总额失败: {e}") from e
+
     # ==================== 私有辅助方法 ====================
 
     def _assess_credit_risk(
@@ -432,7 +455,7 @@ class FinanceService:
         if not payments:
             return 0.0
 
-        # 简化评分：基于付款次数和及时性
+        # 简化评分:基于付款次数和及时性
         return min(100.0, len(payments) * 5)
 
     def _calculate_overall_risk_score(
@@ -442,7 +465,7 @@ class FinanceService:
         payment_history_score: float,
     ) -> float:
         """计算综合风险评分"""
-        # 风险评分算法（分数越高风险越低）
+        # 风险评分算法(分数越高风险越低)
         overdue_penalty = min(50, float(overdue_amount) / 1000)  # 逾期金额惩罚
         utilization_penalty = credit_utilization / 2  # 授信使用率惩罚
 
@@ -467,7 +490,7 @@ class FinanceService:
         warnings = []
 
         if risk_score < 40:
-            warnings.append("客户财务风险极高，建议暂停授信")
+            warnings.append("客户财务风险极高,建议暂停授信")
 
         if overdue_amount > 0:
             warnings.append(f"存在逾期应收账款: ¥{overdue_amount:,.2f}")

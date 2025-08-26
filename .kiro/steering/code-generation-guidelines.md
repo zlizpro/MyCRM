@@ -45,3 +45,100 @@
 - 对于复杂逻辑，提供思路解释注释
 - 在文件顶部提供全局概述
 - 使用清晰的缩进和格式化，提高代码可读性
+
+## 深度思考与验证流程
+
+### Sequential Thinking 多次思考要求
+当客户提出问题时，必须使用sequential-thinking工具进行深度分析：
+
+#### 必须使用深度思考的情况
+- **复杂功能设计**：涉及多个模块交互或复杂业务逻辑
+- **技术方案选择**：需要在多个实现方案中做出选择
+- **架构设计决策**：影响系统整体结构的重要决策
+- **问题诊断分析**：复杂的bug定位或性能问题分析
+- **用户需求理解**：需求不明确或存在多种理解可能性
+
+#### 思考深度标准
+```python
+# 思考过程示例
+THINKING_PROCESS = {
+    'problem_analysis': '问题分析和需求理解',
+    'solution_exploration': '多方案探索和对比',
+    'risk_assessment': '风险识别和应对策略',
+    'implementation_planning': '具体实施计划制定',
+    'validation_strategy': '验证和测试策略'
+}
+```
+
+### Context7 技术文档验证要求
+在实施方案前，必须使用context7查询最新技术文档进行验证：
+
+#### 必须查询验证的内容
+- **第三方库使用**：确认API的最新用法和最佳实践
+- **框架特性**：验证tkinter/ttk的最新特性和兼容性
+- **设计模式**：确认设计模式的标准实现方式
+- **性能优化**：查询最新的性能优化技术和工具
+
+#### 验证流程
+```python
+# 技术验证流程
+VALIDATION_PROCESS = [
+    '1. 识别需要验证的技术点',
+    '2. 使用context7查询相关文档',
+    '3. 对比当前方案与最佳实践',
+    '4. 调整实施方案',
+    '5. 记录验证结果和决策依据'
+]
+```
+
+### 本地工具优化要求
+优先使用本地工具和方法，减少token消耗：
+
+#### 本地工具优先级
+```python
+LOCAL_TOOLS_PRIORITY = {
+    'file_operations': ['readFile', 'readMultipleFiles', 'strReplace'],
+    'search_tools': ['grepSearch', 'fileSearch'],
+    'code_analysis': ['listDirectory', 'executeBash'],
+    'git_operations': ['git_status', 'git_diff', 'git_log']
+}
+```
+
+#### Token优化策略
+- **批量文件读取**：使用readMultipleFiles而非多次readFile
+- **精确搜索**：使用grepSearch进行精确内容搜索
+- **增量更新**：使用strReplace进行精确修改而非重写整个文件
+- **本地验证**：优先使用本地工具验证代码正确性
+
+#### 实施原则
+```python
+# Token优化实施原则
+OPTIMIZATION_PRINCIPLES = {
+    'read_efficiency': '一次读取多个相关文件',
+    'search_precision': '使用精确的搜索模式',
+    'update_granularity': '进行最小粒度的文件修改',
+    'local_validation': '使用本地工具进行代码验证',
+    'context_reuse': '重用已获取的上下文信息'
+}
+```
+
+### 工作流程集成
+```python
+# 完整的问题解决工作流程
+def solve_complex_problem(user_request):
+    # 1. 使用sequential thinking深度分析
+    analysis = sequential_thinking_analysis(user_request)
+
+    # 2. 使用context7验证技术方案
+    technical_validation = context7_verify_solution(analysis.solution)
+
+    # 3. 使用本地工具实施方案
+    implementation = implement_with_local_tools(
+        validated_solution=technical_validation
+    )
+
+    # 4. 记录完整的决策过程
+    document_decision_process(analysis, technical_validation, implementation)
+
+    return implementation
+```

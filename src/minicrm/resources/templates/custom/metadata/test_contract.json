@@ -1,0 +1,12 @@
+{
+  "type": "contract",
+  "content": "\n        客户合同模板\n\n        客户名称: {{customer_name}}\n        合同金额: {{contract_amount}}\n        签署日期: {{sign_date}}\n\n        {% if special_terms %}\n        特殊条款: {{special_terms}}\n        {% endif %}\n        ",
+  "variables": [
+    "sign_date",
+    "customer_name",
+    "contract_amount",
+    "special_terms"
+  ],
+  "created_at": "2025-08-18 15:57:51",
+  "version": "1.0"
+}

@@ -115,7 +115,7 @@
 
   // JSON configuration
   "[json]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "vscode.json-language-features"
   },
   "[jsonc]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
@@ -142,5 +142,6 @@
     "other": false
   },
   "editor.suggest.showWords": false,
-  "editor.wordBasedSuggestions": "off"
+  "editor.wordBasedSuggestions": "off",
+  "kiroAgent.configureMCP": "Enabled"
 }

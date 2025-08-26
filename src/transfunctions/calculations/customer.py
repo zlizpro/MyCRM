@@ -1,13 +1,14 @@
 """
 Transfunctions - 客户相关计算
 
-提供客户价值评分等客户相关的计算功能。
+提供客户价值评分等客户相关的计算功能.
 """
 
 import logging
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any
+
 
 # 配置日志
 logger = logging.getLogger(__name__)
@@ -57,14 +58,14 @@ def calculate_customer_value_score(
 ) -> CustomerValueMetrics:
     """计算客户价值评分
 
-    基于客户的交易历史、互动频率、合作时长等多个维度，
-    计算客户的综合价值评分，适用于板材行业的客户评估。
+    基于客户的交易历史、互动频率、合作时长等多个维度,
+    计算客户的综合价值评分,适用于板材行业的客户评估.
 
     Args:
         customer_data: 客户基本信息
         transaction_history: 交易历史记录
         interaction_history: 互动历史记录
-        time_period_months: 评估时间段（月）
+        time_period_months: 评估时间段(月)
 
     Returns:
         CustomerValueMetrics: 客户价值评分指标
@@ -160,9 +161,9 @@ def _calculate_transaction_value_score(
     # 计算交易频次
     transaction_count = len(period_transactions)
 
-    # 评分逻辑（可根据行业特点调整）
-    amount_score = min(30, float(total_amount) / 10000)  # 每万元得1分，最高30分
-    frequency_score = min(10, transaction_count * 2)  # 每笔交易得2分，最高10分
+    # 评分逻辑(可根据行业特点调整)
+    amount_score = min(30, float(total_amount) / 10000)  # 每万元得1分,最高30分
+    frequency_score = min(10, transaction_count * 2)  # 每笔交易得2分,最高10分
 
     return amount_score + frequency_score
 
@@ -212,7 +213,7 @@ def _calculate_loyalty_score_new(
         cooperation_months = (
             datetime.now() - datetime.fromisoformat(created_at)
         ).days / 30
-        time_score = min(10, cooperation_months / 6)  # 每半年得1分，最高10分
+        time_score = min(10, cooperation_months / 6)  # 每半年得1分,最高10分
     else:
         time_score = 0
 

@@ -2,7 +2,7 @@
 
 ## 概述
 
-MiniCRM是一个基于Python和PySide6(Qt)的跨平台客户关系管理系统，支持macOS和Windows平台。系统采用现代化的Qt GUI设计，提供完整的客户和供应商管理功能，包括数据仪表盘、业务流程管理和智能分析功能。
+MiniCRM是一个基于Python和tkinter/ttk的跨平台客户关系管理系统，支持macOS和Windows平台。系统采用现代化的TTK GUI设计，提供完整的客户和供应商管理功能，包括数据仪表盘、业务流程管理和智能分析功能。
 
 ## 架构设计
 

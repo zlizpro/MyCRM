@@ -1,7 +1,7 @@
 """
 Transfunctions - 验证模块
 
-提供统一的数据验证功能。
+提供统一的数据验证功能.
 """
 
 from .business import (
@@ -19,6 +19,7 @@ from .core import (
     validate_required_fields,
     validate_string_length,
 )
+
 
 __all__ = [
     # 验证类和异常

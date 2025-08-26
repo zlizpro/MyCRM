@@ -1,23 +1,32 @@
+"""MiniCRM 主题管理器 - TTK版本
+
+重构后的主题管理器,使用TTK模块化设计.
+完全基于TTK,无Qt依赖.
 """
-MiniCRM 主题管理器
 
-重构后的主题管理器，使用模块化设计。
-为了保持向后兼容性，这里重新导出新的模块化组件。
-"""
+# 导出TTK版本的主题管理器
+from ..ttk_base.theme_manager import (
+    TTKThemeManager as ThemeManager,
+    apply_global_ttk_theme,
+    get_global_ttk_theme_manager,
+)
 
-# 重新导出新的模块化组件
-from .managers.stylesheet_generator import StylesheetGenerator
-from .managers.theme_applicator import ThemeApplicator
-from .managers.theme_definitions import get_theme_definitions
-from .managers.theme_io_manager import ThemeIOManager
-from .managers.theme_manager import ThemeManager
+# 导出TTK版本的组件样式应用器
+from .component_styler import ComponentStyler
 
+
+# 为了向后兼容,提供一些别名
+TTKThemeManager = ThemeManager
+get_theme_manager = get_global_ttk_theme_manager
+apply_theme = apply_global_ttk_theme
 
 # 保持向后兼容性
 __all__ = [
+    "ComponentStyler",
+    "TTKThemeManager",
     "ThemeManager",
-    "StylesheetGenerator",
-    "ThemeApplicator",
-    "ThemeIOManager",
-    "get_theme_definitions",
+    "apply_global_ttk_theme",
+    "apply_theme",
+    "get_global_ttk_theme_manager",
+    "get_theme_manager",
 ]

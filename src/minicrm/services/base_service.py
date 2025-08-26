@@ -1,7 +1,7 @@
 """
 MiniCRM 基础服务类
 
-定义了所有业务服务的基础类和通用功能，包括：
+定义了所有业务服务的基础类和通用功能,包括:
 - 基础服务类
 - 事务管理
 - 错误处理
@@ -31,8 +31,8 @@ class BaseService(ABC):
     """
     基础服务类
 
-    所有业务服务都应该继承自这个基础类。
-    提供通用的业务逻辑处理、错误处理和日志记录功能。
+    所有业务服务都应该继承自这个基础类.
+    提供通用的业务逻辑处理、错误处理和日志记录功能.
     """
 
     def __init__(self, dao=None):
@@ -40,7 +40,7 @@ class BaseService(ABC):
         初始化基础服务
 
         Args:
-            dao: 数据访问对象，将在后续任务中实现
+            dao: 数据访问对象,将在后续任务中实现
         """
         self._dao = dao
         self._logger = get_logger(self.__class__.__name__)
@@ -89,7 +89,7 @@ class BaseService(ABC):
             if field in data and data[field] is not None:
                 if not isinstance(data[field], expected_type):
                     raise ValidationError(
-                        f"字段 {field} 的类型应该是 {expected_type.__name__}，"
+                        f"字段 {field} 的类型应该是 {expected_type.__name__},"
                         f"但实际是 {type(data[field]).__name__}"
                     )
 
@@ -141,7 +141,7 @@ class BaseService(ABC):
         清除缓存
 
         Args:
-            pattern: 缓存键模式，如果为None则清除所有缓存
+            pattern: 缓存键模式,如果为None则清除所有缓存
         """
         if pattern is None:
             self._cache.clear()
@@ -192,10 +192,10 @@ class CRUDService(BaseService):
     """
     CRUD服务基类
 
-    为需要基本增删改查功能的服务提供通用实现。
+    为需要基本增删改查功能的服务提供通用实现.
     """
 
-    def __init__(self, dao=None, model_class: type[T] = None):
+    def __init__(self, dao=None, model_class=None):
         """
         初始化CRUD服务
 
@@ -206,7 +206,7 @@ class CRUDService(BaseService):
         super().__init__(dao)
         self._model_class = model_class
 
-    def create(self, data: dict[str, Any]) -> T:
+    def create(self, data: dict[str, Any]) -> Any:
         """
         创建新记录
 
@@ -243,7 +243,7 @@ class CRUDService(BaseService):
         except Exception as e:
             self._handle_service_error("创建记录", e)
 
-    def get_by_id(self, record_id: int) -> T | None:
+    def get_by_id(self, record_id: int) -> Any | None:
         """
         根据ID获取记录
 
@@ -275,7 +275,7 @@ class CRUDService(BaseService):
         except Exception as e:
             self._handle_service_error("获取记录", e)
 
-    def update(self, record_id: int, data: dict[str, Any]) -> T:
+    def update(self, record_id: int, data: dict[str, Any]) -> Any:
         """
         更新记录
 
@@ -344,7 +344,7 @@ class CRUDService(BaseService):
         except Exception as e:
             self._handle_service_error("删除记录", e)
 
-    def list_all(self, filters: dict[str, Any] = None) -> list[T]:
+    def list_all(self, filters: dict[str, Any] = None) -> list[Any]:
         """
         获取所有记录
 
@@ -375,7 +375,7 @@ class CRUDService(BaseService):
         except Exception as e:
             self._handle_service_error("获取记录列表", e)
 
-    # 抽象方法，子类需要实现
+    # 抽象方法,子类需要实现
     @abstractmethod
     def _validate_create_data(self, data: dict[str, Any]) -> None:
         """验证创建数据"""
@@ -387,17 +387,17 @@ class CRUDService(BaseService):
         pass
 
     @abstractmethod
-    def _perform_create(self, data: dict[str, Any]) -> T:
+    def _perform_create(self, data: dict[str, Any]) -> Any:
         """执行创建操作"""
         pass
 
     @abstractmethod
-    def _perform_get_by_id(self, record_id: int) -> T | None:
+    def _perform_get_by_id(self, record_id: int) -> Any | None:
         """执行根据ID获取操作"""
         pass
 
     @abstractmethod
-    def _perform_update(self, record_id: int, data: dict[str, Any]) -> T:
+    def _perform_update(self, record_id: int, data: dict[str, Any]) -> Any:
         """执行更新操作"""
         pass
 
@@ -407,7 +407,7 @@ class CRUDService(BaseService):
         pass
 
     @abstractmethod
-    def _perform_list_all(self, filters: dict[str, Any] = None) -> list[T]:
+    def _perform_list_all(self, filters: dict[str, Any] = None) -> list[Any]:
         """执行获取所有记录操作"""
         pass
 
@@ -416,7 +416,7 @@ class ServiceRegistry:
     """
     服务注册表
 
-    管理所有已注册的服务实例，提供服务发现和依赖注入功能。
+    管理所有已注册的服务实例,提供服务发现和依赖注入功能.
     """
 
     _services: dict[str, BaseService] = {}
