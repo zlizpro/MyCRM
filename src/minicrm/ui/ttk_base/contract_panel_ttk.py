@@ -419,61 +419,82 @@ class ContractPanelTTK(BaseWidget):
             message_dialogs_ttk.show_error(self, f"加载合同数据失败: {e}")
 
     def _format_contract_for_display(self, contract: Dict[str, Any]) -> Dict[str, Any]:
-        """格式化合同数据用于显示"""
-        # 格式化合同类型
-        contract_type = contract.get("contract_type", "")
-        type_map = {
-            "sales": "销售合同",
-            "purchase": "采购合同",
-            "service": "服务合同",
-            "framework": "框架合同",
-            "other": "其他",
-        }
-        contract["contract_type"] = type_map.get(contract_type, contract_type)
-
-        # 格式化合同状态
-        contract_status = contract.get("contract_status", "")
-        status_map = {
-            "draft": "草稿",
-            "pending": "待审批",
-            "approved": "已审批",
-            "signed": "已签署",
-            "active": "执行中",
-            "completed": "已完成",
-            "terminated": "已终止",
-            "expired": "已过期",
-        }
-        contract["contract_status"] = status_map.get(contract_status, contract_status)
-
-        # 格式化金额
-        amount = contract.get("contract_amount", 0)
+        """格式化合同数据用于显示 - 使用transfunctions"""
         try:
-            contract["contract_amount"] = f"¥{float(amount):,.2f}"
-        except (ValueError, TypeError):
-            contract["contract_amount"] = "¥0.00"
+            # 使用transfunctions计算合同状态
+            status_info = calculate_contract_status(contract)
+            
+            # 格式化合同类型
+            contract_type = contract.get("contract_type", "")
+            type_map = {
+                "sales": "销售合同",
+                "purchase": "采购合同",
+                "service": "服务合同",
+                "framework": "框架合同",
+                "other": "其他",
+            }
+            contract["contract_type"] = type_map.get(contract_type, contract_type)
 
-        # 格式化进度
-        progress = contract.get("progress_percentage", 0)
-        try:
-            contract["progress"] = f"{float(progress):.1f}%"
-        except (ValueError, TypeError):
-            contract["progress"] = "0.0%"
+            # 格式化合同状态
+            contract_status = contract.get("contract_status", "")
+            status_map = {
+                "draft": "草稿",
+                "pending": "待审批",
+                "approved": "已审批",
+                "signed": "已签署",
+                "active": "执行中",
+                "completed": "已完成",
+                "terminated": "已终止",
+                "expired": "已过期",
+            }
+            contract["contract_status"] = status_map.get(contract_status, contract_status)
 
-        # 格式化日期
-        for date_field in ["sign_date", "effective_date", "expiry_date"]:
-            date_value = contract.get(date_field)
-            if date_value:
-                try:
-                    if hasattr(date_value, "strftime"):
-                        contract[date_field] = date_value.strftime("%Y-%m-%d")
+            # 使用transfunctions格式化金额
+            amount = contract.get("contract_amount", 0)
+            contract["contract_amount"] = format_currency(amount)
+
+            # 格式化进度
+            progress = contract.get("progress_percentage", 0)
+            try:
+                contract["progress"] = f"{float(progress):.1f}%"
+            except (ValueError, TypeError):
+                contract["progress"] = "0.0%"
+
+            # 使用transfunctions格式化日期
+            for date_field in ["sign_date", "effective_date", "expiry_date"]:
+                date_value = contract.get(date_field)
+                if date_value:
+                    formatted_date = format_date(date_value)
+                    # 转换为表格显示格式
+                    if formatted_date and "年" in formatted_date:
+                        # 将"2025年01月15日"转换为"2025-01-15"
+                        try:
+                            from datetime import datetime
+                            if isinstance(date_value, str):
+                                date_obj = datetime.strptime(date_value, "%Y-%m-%d")
+                            else:
+                                date_obj = date_value
+                            contract[date_field] = date_obj.strftime("%Y-%m-%d")
+                        except:
+                            contract[date_field] = formatted_date
                     else:
-                        contract[date_field] = str(date_value)[:10]
-                except:
+                        contract[date_field] = formatted_date
+                else:
                     contract[date_field] = ""
-            else:
-                contract[date_field] = ""
 
-        return contract
+            # 添加状态信息
+            contract["_status_info"] = status_info
+            
+            # 添加预警信息
+            if status_info.get("alerts"):
+                contract["_alerts"] = status_info["alerts"]
+
+            return contract
+            
+        except Exception as e:
+            self.logger.error(f"格式化合同数据失败: {e}")
+            # 回退到基本格式化
+            return self._basic_format_contract(contract)
 
     def _perform_search(self) -> None:
         """执行搜索"""
@@ -617,7 +638,7 @@ class ContractPanelTTK(BaseWidget):
                 self.detail_labels["remaining_days"].config(text="", foreground="black")
 
     def _create_contract(self) -> None:
-        """创建新合同"""
+        """创建新合同 - 使用transfunctions验证"""
         try:
             from minicrm.ui.ttk_base.contract_edit_dialog_ttk import (
                 ContractEditDialogTTK,
@@ -627,6 +648,29 @@ class ContractPanelTTK(BaseWidget):
 
             if dialog.show_modal():
                 contract_data = dialog.get_contract_data()
+
+                # 使用transfunctions验证合同数据
+                try:
+                    validation_result = validate_contract_data(contract_data)
+                    
+                    if not validation_result.is_valid:
+                        error_msg = "合同数据验证失败:\n" + "\n".join(validation_result.errors)
+                        message_dialogs_ttk.show_error(self, error_msg)
+                        return
+                    
+                    # 显示警告信息(如果有)
+                    if validation_result.warnings:
+                        warning_msg = "注意事项:\n" + "\n".join(validation_result.warnings)
+                        if not message_dialogs_ttk.confirm(
+                            self, 
+                            warning_msg + "\n\n是否继续创建合同?", 
+                            "确认创建"
+                        ):
+                            return
+                            
+                except ValidationError as ve:
+                    message_dialogs_ttk.show_error(self, f"数据验证失败: {ve.message}")
+                    return
 
                 # 创建合同
                 new_contract = self.contract_service.create_contract(contract_data)
