@@ -310,6 +310,14 @@ user_data/
 
 # ==================== 开发工具相关 ====================
 
+# IDE配置目录 - 应保留在本地
+.kiro/
+.codebuddy/
+.qoder/
+.trae/
+.mcp_cache/
+.rules/
+
 # Ruff cache
 .ruff_cache/
 
