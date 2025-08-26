@@ -8,7 +8,10 @@ from .business import (
     ValidationError,
     ValidationResult,
     validate_business_rules,
+    validate_contract_data,
     validate_customer_data,
+    validate_quote_data,
+    validate_service_ticket_data,
     validate_supplier_data,
 )
 from .core import (
@@ -35,5 +38,8 @@ __all__ = [
     # 业务验证函数
     "validate_customer_data",
     "validate_supplier_data",
+    "validate_contract_data",
+    "validate_quote_data",
+    "validate_service_ticket_data",
     "validate_business_rules",
 ]

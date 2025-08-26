@@ -5,7 +5,13 @@ Transfunctions - 计算模块
 """
 
 from .customer import CustomerValueMetrics, calculate_customer_value_score
-from .financial import calculate_compound_interest, calculate_quote_total
+from .financial import (
+    calculate_compound_interest,
+    calculate_contract_status,
+    calculate_price_comparison,
+    calculate_quote_total,
+    calculate_trend_analysis,
+)
 from .statistics import (
     PaginationResult,
     calculate_average,
@@ -24,6 +30,9 @@ __all__ = [
     # 财务计算
     "calculate_quote_total",
     "calculate_compound_interest",
+    "calculate_price_comparison",
+    "calculate_trend_analysis",
+    "calculate_contract_status",
     # 统计计算
     "calculate_pagination",
     "calculate_growth_rate",

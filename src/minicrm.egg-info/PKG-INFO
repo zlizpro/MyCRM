@@ -22,14 +22,14 @@ Classifier: Topic :: Office/Business
 Classifier: Topic :: Database :: Front-Ends
 Requires-Python: >=3.9
 Description-Content-Type: text/markdown
-Requires-Dist: docxtpl>=0.16.0
-Requires-Dist: openpyxl>=3.1.0
 Provides-Extra: documents
+Requires-Dist: docxtpl>=0.16.0; extra == "documents"
 Requires-Dist: python-docx>=1.1.0; extra == "documents"
 Requires-Dist: reportlab>=4.0.0; extra == "documents"
 Provides-Extra: analytics
 Requires-Dist: pandas>=2.1.0; extra == "analytics"
 Requires-Dist: numpy>=1.24.0; extra == "analytics"
+Requires-Dist: openpyxl>=3.1.0; extra == "analytics"
 Provides-Extra: charts
 Requires-Dist: matplotlib>=3.8.0; extra == "charts"
 Provides-Extra: pdf
@@ -37,10 +37,12 @@ Requires-Dist: reportlab>=4.0.0; extra == "pdf"
 Provides-Extra: monitoring
 Requires-Dist: psutil>=5.9.0; extra == "monitoring"
 Provides-Extra: full
+Requires-Dist: docxtpl>=0.16.0; extra == "full"
 Requires-Dist: python-docx>=1.1.0; extra == "full"
 Requires-Dist: reportlab>=4.0.0; extra == "full"
 Requires-Dist: pandas>=2.1.0; extra == "full"
 Requires-Dist: numpy>=1.24.0; extra == "full"
+Requires-Dist: openpyxl>=3.1.0; extra == "full"
 Requires-Dist: matplotlib>=3.8.0; extra == "full"
 Requires-Dist: psutil>=5.9.0; extra == "full"
 Provides-Extra: dev
@@ -63,7 +65,7 @@ Requires-Dist: wheel>=0.42.0; extra == "build"
 [![Code Style](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
 [![Type Checker](https://img.shields.io/badge/type%20checker-mypy-blue.svg)](https://mypy.readthedocs.io/)
 
-MiniCRM是一个基于Python和PySide6(Qt)的现代化跨平台客户关系管理系统，专为中小企业设计，提供完整的客户管理、供应商管理、报价比对、合同管理等功能。
+MiniCRM是一个基于Python和tkinter/ttk的现代化跨平台客户关系管理系统，专为中小企业设计，提供完整的客户管理、供应商管理、报价比对、合同管理等功能。
 
 ## ✨ 主要特性
 
@@ -76,7 +78,7 @@ MiniCRM是一个基于Python和PySide6(Qt)的现代化跨平台客户关系管�
 
 ### 🖥️ 技术特性
 - **跨平台支持** - 支持Windows、macOS和Linux
-- **现代化界面** - 基于PySide6的原生Qt界面，支持主题切换
+- **现代化界面** - 基于tkinter/ttk的原生界面，支持主题切换
 - **高性能** - 优化的数据库查询和UI响应性能
 - **可扩展性** - 模块化架构和插件系统
 - **数据安全** - 自动备份和数据完整性检查
@@ -303,7 +305,7 @@ uv run pre-commit run --all-files
 感谢所有为MiniCRM项目做出贡献的开发者和用户！
 
 特别感谢以下开源项目：
-- [PySide6](https://wiki.qt.io/Qt_for_Python) - 现代化的Python Qt绑定
+- [tkinter/ttk](https://docs.python.org/3/library/tkinter.html) - Python标准库GUI框架
 - [Ruff](https://github.com/astral-sh/ruff) - 极快的Python代码检查器
 - [UV](https://github.com/astral-sh/uv) - 现代化的Python包管理器
 

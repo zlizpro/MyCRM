@@ -111,13 +111,13 @@ src/minicrm/services/base_service.py
 src/minicrm/services/contract_service.py
 src/minicrm/services/customer_service.py
 src/minicrm/services/customer_type_service.py
-src/minicrm/services/customer_type_service_fixed.py
 src/minicrm/services/data_export_service.py
 src/minicrm/services/data_import_service.py
 src/minicrm/services/document_generation_service.py
 src/minicrm/services/excel_export_service.py
 src/minicrm/services/file_validator.py
 src/minicrm/services/finance_service.py
+src/minicrm/services/finance_service_backup.py
 src/minicrm/services/import_export_coordinator.py
 src/minicrm/services/import_export_service.py
 src/minicrm/services/interaction_service.py
@@ -129,6 +129,7 @@ src/minicrm/services/quote_template_service.py
 src/minicrm/services/settings_service.py
 src/minicrm/services/supplier_finance_service.py
 src/minicrm/services/supplier_service.py
+src/minicrm/services/supplier_service_backup.py
 src/minicrm/services/task_service.py
 src/minicrm/services/template_manager_service.py
 src/minicrm/services/word_document_service.py
@@ -171,6 +172,7 @@ src/minicrm/services/tests/test_interaction_service.py
 src/minicrm/services/tests/test_quote_comparison_service.py
 src/minicrm/ui/__init__.py
 src/minicrm/ui/contract_export_dialog_ttk.py
+src/minicrm/ui/dashboard_complete.py
 src/minicrm/ui/dashboard_refactored.py
 src/minicrm/ui/data_bus_ttk.py
 src/minicrm/ui/event_bus.py
@@ -240,7 +242,6 @@ src/minicrm/ui/ttk_base/navigation_page_factory.py
 src/minicrm/ui/ttk_base/navigation_page_registry.py
 src/minicrm/ui/ttk_base/navigation_panel.py
 src/minicrm/ui/ttk_base/navigation_registry_ttk.py
-src/minicrm/ui/ttk_base/navigation_registry_ttk_fixed.py
 src/minicrm/ui/ttk_base/page_configuration.py
 src/minicrm/ui/ttk_base/page_management_integration.py
 src/minicrm/ui/ttk_base/page_manager.py

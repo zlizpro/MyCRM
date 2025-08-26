@@ -1218,16 +1218,13 @@ wheels = [
 name = "minicrm"
 version = "1.0.0"
 source = { editable = "." }
-dependencies = [
-    { name = "docxtpl" },
-    { name = "openpyxl" },
-]
 
 [package.optional-dependencies]
 analytics = [
     { name = "numpy", version = "2.0.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
     { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.10.*'" },
     { name = "numpy", version = "2.3.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
+    { name = "openpyxl" },
     { name = "pandas" },
 ]
 build = [
@@ -1249,15 +1246,18 @@ dev = [
     { name = "ruff" },
 ]
 documents = [
+    { name = "docxtpl" },
     { name = "python-docx" },
     { name = "reportlab" },
 ]
 full = [
+    { name = "docxtpl" },
     { name = "matplotlib", version = "3.9.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
     { name = "matplotlib", version = "3.10.5", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
     { name = "numpy", version = "2.0.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
     { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.10.*'" },
     { name = "numpy", version = "2.3.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
+    { name = "openpyxl" },
     { name = "pandas" },
     { name = "psutil" },
     { name = "python-docx" },
@@ -1270,17 +1270,27 @@ pdf = [
     { name = "reportlab" },
 ]
 
+[package.dev-dependencies]
+dev = [
+    { name = "black" },
+    { name = "mypy" },
+    { name = "pytest" },
+    { name = "ruff" },
+]
+
 [package.metadata]
 requires-dist = [
     { name = "black", marker = "extra == 'dev'", specifier = ">=23.12.0" },
-    { name = "docxtpl", specifier = ">=0.16.0" },
+    { name = "docxtpl", marker = "extra == 'documents'", specifier = ">=0.16.0" },
+    { name = "docxtpl", marker = "extra == 'full'", specifier = ">=0.16.0" },
     { name = "isort", marker = "extra == 'dev'", specifier = ">=5.13.0" },
     { name = "matplotlib", marker = "extra == 'charts'", specifier = ">=3.8.0" },
     { name = "matplotlib", marker = "extra == 'full'", specifier = ">=3.8.0" },
     { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.8.0" },
     { name = "numpy", marker = "extra == 'analytics'", specifier = ">=1.24.0" },
     { name = "numpy", marker = "extra == 'full'", specifier = ">=1.24.0" },
-    { name = "openpyxl", specifier = ">=3.1.0" },
+    { name = "openpyxl", marker = "extra == 'analytics'", specifier = ">=3.1.0" },
+    { name = "openpyxl", marker = "extra == 'full'", specifier = ">=3.1.0" },
     { name = "pandas", marker = "extra == 'analytics'", specifier = ">=2.1.0" },
     { name = "pandas", marker = "extra == 'full'", specifier = ">=2.1.0" },
     { name = "psutil", marker = "extra == 'full'", specifier = ">=5.9.0" },
@@ -1299,6 +1309,14 @@ requires-dist = [
     { name = "wheel", marker = "extra == 'build'", specifier = ">=0.42.0" },
 ]
 provides-extras = ["documents", "analytics", "charts", "pdf", "monitoring", "full", "dev", "build"]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "black", specifier = ">=25.1.0" },
+    { name = "mypy", specifier = ">=1.17.1" },
+    { name = "pytest", specifier = ">=8.4.1" },
+    { name = "ruff", specifier = ">=0.12.8" },
+]
 
 [[package]]
 name = "mypy"
